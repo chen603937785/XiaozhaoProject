@@ -564,9 +564,26 @@ function flattenResume(detail) {
   return out;
 }
 
+// 网页打开方式：webview 内置 / 系统浏览器
+const alwaysUseBrowser = ref(localStorage.getItem('always_use_browser') === '1');
+
+function toggleAlwaysUseBrowser(val) {
+  alwaysUseBrowser.value = val;
+  localStorage.setItem('always_use_browser', val ? '1' : '0');
+}
+
+function openUrlInBrowser(url) {
+  if (!url) return;
+  invoke('open_in_browser', { url }).catch(() => {});
+}
+
 function openLinkVip(url) {
   if (!requireVip()) return;
-  openLink(url);
+  if (alwaysUseBrowser.value) {
+    openUrlInBrowser(url);
+  } else {
+    openLink(url);
+  }
 }
 
 function pollTitle(label) {
@@ -1012,6 +1029,20 @@ onMounted(async () => {
                   <div v-if="!hasUpdate && latestVersion" class="settings-tip">已是最新版本</div>
                 </div>
               </div>
+
+              <div class="card settings-card">
+                <div class="settings-section">
+                  <div class="settings-section-title">网页打开方式</div>
+                  <div class="settings-switch-row">
+                    <span class="settings-switch-label">始终使用电脑浏览器打开网页</span>
+                    <label class="settings-switch">
+                      <input type="checkbox" :checked="alwaysUseBrowser" @change="toggleAlwaysUseBrowser($event.target.checked)" />
+                      <span class="settings-slider"></span>
+                    </label>
+                  </div>
+                  <div class="settings-switch-desc">智能填写插件将无法使用</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1345,4 +1376,20 @@ tbody tr:hover td { background: #f8fafd; }
 .settings-note-text { margin: 0; padding: 12px 16px; background: #f7fafd; border-radius: 10px; font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.6; font-family: inherit; }
 .settings-actions { display: flex; gap: 10px; margin-top: 8px; }
 .settings-tip { font-size: 13px; color: var(--text-sub); }
+
+.settings-switch-row { display: flex; align-items: center; justify-content: space-between; }
+.settings-switch-label { font-size: 14px; color: var(--text); }
+.settings-switch-desc { font-size: 12px; color: var(--text-sub); }
+.settings-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.settings-switch input { opacity: 0; width: 0; height: 0; }
+.settings-slider {
+  position: absolute; inset: 0; cursor: pointer;
+  background: #dce7f4; border-radius: 12px; transition: 0.2s;
+}
+.settings-slider::before {
+  content: ''; position: absolute; left: 3px; top: 3px;
+  width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.2s;
+}
+.settings-switch input:checked + .settings-slider { background: var(--primary); }
+.settings-switch input:checked + .settings-slider::before { transform: translateX(20px); }
 </style>

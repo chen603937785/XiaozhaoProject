@@ -58,17 +58,6 @@ async function saveNickname() {
     savingNickname.value = false;
   }
 }
-
-const tab = ref('plan');
-const selectedPlan = ref(1);
-
-const plans = [
-  { name: '月卡', tag: '1 个月', desc: '适合短期求职，快速体验全部会员功能，随时可续', price: '29' },
-  { name: '季卡', tag: '3 个月', desc: '覆盖整个秋招季，持续追踪岗位，性价比之选', price: '79' },
-  { name: '年卡', tag: '12 个月', desc: '全年求职护航，无限次使用，综合最优价值', price: '199' }
-];
-
-const currentPlan = computed(() => plans[selectedPlan.value]);
 </script>
 
 <template>
@@ -101,48 +90,9 @@ const currentPlan = computed(() => plans[selectedPlan.value]);
         <button class="acct-logout" @click="emit('logout')">退出登录</button>
       </div>
 
-      <!-- 会员切换栏 -->
-      <div class="vip-tabs">
-        <div class="vip-tab" :class="{ active: tab === 'plan' }" @click="tab = 'plan'">会员套餐</div>
-        <div class="vip-tab" :class="{ active: tab === 'code' }" @click="tab = 'code'">兑换码</div>
-      </div>
-
-      <!-- 会员套餐内容 -->
-      <template v-if="tab === 'plan'">
-        <input class="promo-input" placeholder="注册时没填，可在开会员前补填" />
-
-        <div class="plan-grid">
-          <div
-            v-for="(p, i) in plans"
-            :key="p.name"
-            class="plan-card"
-            :class="{ selected: selectedPlan === i }"
-            @click="selectedPlan = i"
-          >
-            <div class="plan-name">{{ p.name }}</div>
-            <div class="plan-tag">{{ p.tag }}</div>
-            <div class="plan-desc">{{ p.desc }}</div>
-            <div class="plan-price">¥{{ p.price }}</div>
-            <div class="plan-buy">购买</div>
-          </div>
-        </div>
-
-        <!-- 支付区域 -->
-        <div class="pay-panel">
-          <div class="qr-card">
-            <div class="qr-placeholder">二维码</div>
-          </div>
-          <div class="pay-info">
-            <div class="pay-name">{{ currentPlan.name }}会员</div>
-            <div class="pay-price">¥{{ currentPlan.price }}</div>
-            <div class="pay-desc">扫码支付，支付完成后自动开通</div>
-            <button class="pay-refresh">刷新支付状态</button>
-          </div>
-        </div>
-      </template>
-
-      <!-- 兑换码内容 -->
-      <div v-else class="code-box">
+      <!-- 兑换码 -->
+      <div class="code-box">
+        <div class="code-title">会员兑换</div>
         <input v-model="codeInput" class="promo-input" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
         <button class="code-btn" :disabled="redeeming" @click="doRedeem">{{ redeeming ? '兑换中...' : '立即兑换' }}</button>
         <div v-if="redeemMsg" class="redeem-msg" :class="{ error: redeemMsg.includes('失败') || redeemMsg.includes('不存在') || redeemMsg.includes('已使用') || redeemMsg.includes('过期') }">{{ redeemMsg }}</div>
@@ -377,6 +327,7 @@ const currentPlan = computed(() => plans[selectedPlan.value]);
 
 /* 兑换码 */
 .code-box { margin-bottom: 18px; }
+.code-title { font-size: 15px; font-weight: 600; color: #18385f; margin-bottom: 12px; }
 .code-btn {
   width: 100%;
   height: 52px;
