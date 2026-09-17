@@ -1,0 +1,111 @@
+<view class="page" style="padding-top: {{statusBarHeight}}px">
+
+  <!-- 顶部悬浮控件(右上角) -->
+  <view class="top-float" style="top: {{statusBarHeight + 8}}px">
+    <text class="float-icon">🔔</text>
+    <view class="float-line"></view>
+    <text class="float-icon">⚙️</text>
+  </view>
+
+  <!-- 用户信息区 -->
+  <view class="user-section">
+    <view class="avatar-wrap">
+      <view class="avatar-grad">
+        <view class="avatar-inner">校</view>
+      </view>
+      <view class="avatar-dot"></view>
+    </view>
+    <view class="user-meta">
+      <view class="nickname">{{loggedIn ? '求职者' : '点击登录'}}</view>
+      <view class="badge" bindtap="onBindPhone">
+        <text class="badge-icon">✨</text>
+        <text class="badge-text">{{phone ? phone : '绑定手机号'}}</text>
+        <text class="badge-tip">i</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据统计区 -->
+  <view class="stats">
+    <view class="stat">
+      <view class="stat-num">{{favCount}}</view>
+      <view class="stat-label">收藏</view>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat">
+      <view class="stat-num">{{matchCount}}</view>
+      <view class="stat-label">匹配岗位</view>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat">
+      <view class="stat-num">{{applyCount}}</view>
+      <view class="stat-label">投递</view>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat">
+      <view class="stat-num">{{viewCount}}</view>
+      <view class="stat-label">浏览</view>
+    </view>
+  </view>
+
+  <!-- 第一张卡片: 我的服务(星球) -->
+  <view class="card">
+    <view class="card-head">
+      <text class="card-title">我的服务</text>
+      <text class="card-more">全部 ›</text>
+    </view>
+    <view class="planet-grid">
+      <view class="planet-item" bindtap="goFavorites">
+        <view class="planet planet-blue">🗂</view>
+        <view class="planet-base base-blue">
+          <view class="pb-main">我的收藏</view>
+          <view class="pb-sub">{{favCount}} 个岗位</view>
+        </view>
+      </view>
+      <view class="planet-item" bindtap="goPreference">
+        <view class="planet planet-purple">🎯</view>
+        <view class="planet-base base-purple">
+          <view class="pb-main">岗位偏好</view>
+          <view class="pb-sub">设置匹配</view>
+        </view>
+      </view>
+      <view class="planet-item" bindtap="onBindPhone">
+        <view class="planet planet-pink">📱</view>
+        <view class="planet-base base-pink">
+          <view class="pb-main">绑定手机</view>
+          <view class="pb-sub">{{phone ? '已绑定' : '未绑定'}}</view>
+        </view>
+      </view>
+      <view class="planet-item" bindtap="goFavorites">
+        <view class="planet planet-orange">🌟</view>
+        <view class="planet-base base-cream">
+          <view class="pb-main">浏览记录</view>
+          <view class="pb-sub">近期查看</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 第二张卡片: 切换 + 内容预览 -->
+  <view class="card">
+    <view class="tab-bar">
+      <view class="tab {{tab === 'fav' ? 'active' : ''}}" bindtap="onTab" data-tab="fav">收藏</view>
+      <view class="tab {{tab === 'browse' ? 'active' : ''}}" bindtap="onTab" data-tab="browse">浏览</view>
+    </view>
+    <view class="inner-card">
+      <view class="inner-title">{{innerTitle}}</view>
+      <view class="thumb-row">
+        <view class="thumb thumb-purple">🎯</view>
+        <view class="thumb thumb-pink">💼</view>
+        <view class="thumb thumb-orange">📋</view>
+        <view class="thumb thumb-blue">🌟</view>
+      </view>
+      <view class="inner-footer">
+        <text class="inner-left">{{innerCount}}</text>
+        <text class="inner-right">{{innerTime}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="page-tail"></view>
+</view>

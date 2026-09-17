@@ -1,0 +1,79 @@
+<view class="page" wx:if="{{job}}">
+
+  <!-- 顶部公司信息 -->
+  <view class="head">
+    <view class="company">{{job.companyName}}</view>
+    <view class="head-tags">
+      <text wx:for="{{job.recruitTypeArr}}" wx:key="*this" class="tag tag-brand">{{item}}</text>
+    </view>
+    <view class="deadline">截止：{{job.deadlineLabel}}</view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="info-row" wx:if="{{job.positionArr.length}}">
+      <view class="info-label">岗位</view>
+      <view class="info-value">
+        <text wx:for="{{job.positionArr}}" wx:key="*this" class="pos-chip">{{item}}</text>
+      </view>
+    </view>
+    <view class="info-row">
+      <view class="info-label">行业</view>
+      <view class="info-value">{{job.industry}}</view>
+    </view>
+    <view class="info-row">
+      <view class="info-label">企业性质</view>
+      <view class="info-value">{{job.companyNature}}</view>
+    </view>
+    <view class="info-row">
+      <view class="info-label">招聘对象</view>
+      <view class="info-value">{{job.gradeLabel}}</view>
+    </view>
+    <view class="info-row">
+      <view class="info-label">学历要求</view>
+      <view class="info-value">{{job.educationLabel}}</view>
+    </view>
+    <view class="info-row">
+      <view class="info-label">工作地点</view>
+      <view class="info-value">{{job.cities}}</view>
+    </view>
+    <view class="info-row" wx:if="{{job.remark}}">
+      <view class="info-label">备注</view>
+      <view class="info-value">{{job.remark}}</view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏: 地址 + 复制 + 收藏 -->
+  <view class="footer-bar">
+    <view class="link-item">
+      <text class="link-label">投递</text>
+      <text class="link-addr">{{job.applyUrl}}</text>
+      <view class="copy-btn" bindtap="copyLink" data-url="{{job.applyUrl}}">复制</view>
+    </view>
+    <view class="link-item" wx:if="{{job.noticeUrl}}">
+      <text class="link-label">网申</text>
+      <text class="link-addr">{{job.noticeUrl}}</text>
+      <view class="copy-btn" bindtap="copyLink" data-url="{{job.noticeUrl}}">复制</view>
+    </view>
+    <view class="fav-btn {{favorite ? 'faved' : ''}}" bindtap="toggleFavorite">
+      {{favorite ? '已收藏' : '收藏岗位'}}
+    </view>
+  </view>
+
+  <!-- 观看广告确认弹窗 -->
+  <view wx:if="{{showAdConfirm}}" class="ad-mask" bindtap="onAdCancel"></view>
+  <view wx:if="{{showAdConfirm}}" class="ad-dialog">
+    <view class="ad-title">观看广告</view>
+    <view class="ad-desc">观看一次广告后即可复制，今日将不再弹出</view>
+    <view class="ad-btns">
+      <view class="ad-btn cancel" bindtap="onAdCancel">取消</view>
+      <view class="ad-btn confirm" bindtap="onAdConfirm">确定</view>
+    </view>
+  </view>
+
+</view>
+
+<view wx:elif="{{!loading}}" class="empty">
+  <text class="empty-icon">☰</text>
+  <text>岗位不存在或已下架</text>
+</view>

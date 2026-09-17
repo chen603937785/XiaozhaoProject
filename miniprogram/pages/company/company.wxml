@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="head">
+    <text class="head-title">{{companyName}}</text>
+    <text class="head-count">{{jobs.length}} 个在招岗位</text>
+  </view>
+
+  <view class="job-list">
+    <view wx:for="{{jobs}}" wx:key="id" class="card job-card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="job-header">
+        <view class="job-type">
+          <text wx:for="{{item.recruitTypeArr}}" wx:key="*this" class="tag tag-brand">{{item}}</text>
+        </view>
+        <view class="job-deadline {{item.deadlineDate ? 'deadline-soon' : ''}}">{{item.deadlineLabel}}</view>
+      </view>
+      <view class="job-position">{{item.positionPreview}}</view>
+      <view class="job-tags">
+        <text wx:for="{{item.cityArr}}" wx:key="*this" class="tag">{{item}}</text>
+        <text wx:for="{{item.industryArr}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="job-meta">
+        <text class="meta-item meta-publish">{{item.publishLabel}} 发布</text>
+        <text class="meta-item">{{item.educationLabel}}</text>
+        <text class="meta-item">{{item.gradeLabel}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!jobs.length && !loading}}" class="empty">
+      <text class="empty-icon">☰</text>
+      <text>暂无在招岗位</text>
+    </view>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+  </view>
+</view>

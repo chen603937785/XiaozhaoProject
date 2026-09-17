@@ -1,0 +1,311 @@
+/* 我的页面 —— 梦幻渐变个人中心 */
+.page {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+  background: linear-gradient(180deg, #eef3ff 0%, #f6f0ff 100%);
+}
+
+/* ===== 顶部悬浮控件 ===== */
+.top-float {
+  position: absolute;
+  top: 20rpx;
+  right: 190rpx;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.62);
+  border-radius: 40rpx;
+  padding: 12rpx 22rpx;
+  box-shadow: 0 2rpx 10rpx rgba(150, 140, 190, 0.12);
+}
+.float-icon {
+  font-size: 30rpx;
+  color: #17171c;
+  line-height: 1;
+}
+.float-line {
+  width: 2rpx;
+  height: 28rpx;
+  background: #e7e4f2;
+  margin: 0 18rpx;
+}
+
+/* ===== 用户信息区 ===== */
+.user-section {
+  display: flex;
+  align-items: center;
+  padding: 60rpx 64rpx 40rpx;
+}
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.avatar-grad {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: linear-gradient(135deg, #77c8ff 0%, #b693ff 50%, #e9a6f7 100%);
+  box-shadow: 0 10rpx 28rpx rgba(182, 147, 255, 0.32);
+}
+.avatar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  font-weight: 600;
+  color: #b693ff;
+}
+.avatar-dot {
+  position: absolute;
+  right: 6rpx;
+  bottom: 6rpx;
+  width: 26rpx;
+  height: 26rpx;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4rpx #fff;
+}
+.avatar-dot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #5fd08a;
+}
+.user-meta {
+  margin-left: 32rpx;
+  flex: 1;
+}
+.nickname {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #17171c;
+  margin-bottom: 18rpx;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 40rpx;
+  padding: 10rpx 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(150, 140, 190, 0.12);
+}
+.badge-icon {
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+.badge-text {
+  font-size: 24rpx;
+  color: #5a4a8a;
+  font-weight: 500;
+}
+.badge-tip {
+  margin-left: 12rpx;
+  width: 28rpx;
+  height: 28rpx;
+  line-height: 28rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: #9999a3;
+  border: 2rpx solid #e7e4f2;
+  border-radius: 50%;
+}
+
+/* ===== 数据统计区 ===== */
+.stats {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx 48rpx;
+}
+.stat {
+  flex: 1;
+  text-align: center;
+}
+.stat-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #17171c;
+  line-height: 1;
+}
+.stat-label {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #9999a3;
+}
+.stat-line {
+  width: 2rpx;
+  height: 52rpx;
+  background: #e7e4f2;
+  flex-shrink: 0;
+}
+
+/* ===== 卡片通用 ===== */
+.card {
+  margin: 0 40rpx 32rpx;
+  background: #ffffff;
+  border-radius: 44rpx;
+  padding: 32rpx;
+  box-shadow: 0 10rpx 40rpx rgba(150, 140, 190, 0.14);
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+.card-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #17171c;
+}
+.card-more {
+  font-size: 26rpx;
+  color: #9999a3;
+}
+
+/* ===== 第一张卡片: 星球服务 ===== */
+.planet-grid {
+  display: flex;
+  justify-content: space-between;
+}
+.planet-item {
+  width: 22%;
+  text-align: center;
+}
+.planet {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  margin: 0 auto -44rpx;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+}
+.planet-blue {
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #77c8ff 45%, #4a9fe0 100%);
+  box-shadow: 0 12rpx 28rpx rgba(119, 200, 255, 0.42);
+}
+.planet-purple {
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #b693ff 48%, #7a5cc9 100%);
+  box-shadow: 0 12rpx 28rpx rgba(182, 147, 255, 0.42);
+}
+.planet-pink {
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #e9a6f7 48%, #c76fd6 100%);
+  box-shadow: 0 12rpx 28rpx rgba(233, 166, 247, 0.42);
+}
+.planet-orange {
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #ffd28a 48%, #f0a95c 100%);
+  box-shadow: 0 12rpx 28rpx rgba(255, 205, 130, 0.42);
+}
+.planet-base {
+  border-radius: 24rpx;
+  padding: 48rpx 8rpx 20rpx;
+}
+.base-blue { background: linear-gradient(180deg, #eef6ff, #e1eeff); }
+.base-purple { background: linear-gradient(180deg, #f3edff, #e8dfff); }
+.base-pink { background: linear-gradient(180deg, #fdeffb, #f9e2f6); }
+.base-cream { background: linear-gradient(180deg, #fff8ee, #fdf0db); }
+.pb-main {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+}
+.pb-sub {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #9999a3;
+  line-height: 1.2;
+}
+
+/* ===== 第二张卡片: 切换 + 预览 ===== */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+.tab {
+  font-size: 30rpx;
+  color: #666;
+  margin-right: 48rpx;
+  padding-bottom: 14rpx;
+  position: relative;
+}
+.tab.active {
+  color: #17171c;
+  font-weight: 700;
+}
+.tab.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: #b693ff;
+}
+.inner-card {
+  background: #f4f0fb;
+  border-radius: 28rpx;
+  padding: 24rpx;
+}
+.inner-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+}
+.thumb-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.thumb {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+}
+.thumb-purple { background: linear-gradient(135deg, #f3edff, #e6d6ff); }
+.thumb-pink { background: linear-gradient(135deg, #fdeffb, #fad9f2); }
+.thumb-orange { background: linear-gradient(135deg, #fff4e6, #ffdfc0); }
+.thumb-blue { background: linear-gradient(135deg, #eef6ff, #d6ebff); }
+.inner-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.inner-left {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+}
+.inner-right {
+  font-size: 22rpx;
+  color: #9999a3;
+}
+
+/* 底部留白，暗示可继续滚动 */
+.page-tail {
+  height: 60rpx;
+}

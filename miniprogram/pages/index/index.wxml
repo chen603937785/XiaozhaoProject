@@ -1,0 +1,168 @@
+<view class="page">
+
+  <!-- 顶部: 分栏导航 + 搜索 icon -->
+  <view class="top-bar" style="padding-top: {{statusBarHeight}}px; padding-right: {{menuRight}}px">
+    <view class="tabs">
+      <view wx:for="{{tabs}}" wx:key="key"
+            class="tab {{currentTab === item.key ? 'active' : ''}}"
+            bindtap="onTabTap" data-tab="{{item.key}}">
+        {{item.label}}
+      </view>
+    </view>
+    <view class="search-icon" bindtap="onSearchToggle">
+      <icon type="search" size="20" color="{{searchOpen ? '#324263' : '#666'}}" />
+    </view>
+  </view>
+
+  <!-- 搜索输入框(展开时) -->
+  <view class="search-bar" wx:if="{{searchOpen}}">
+    <input class="search-input" placeholder="搜索公司" value="{{keyword}}" focus="{{searchOpen}}"
+           bindinput="onKeywordInput" bindconfirm="onKeywordConfirm" confirm-type="search" />
+    <view class="search-btn" bindtap="onKeywordConfirm">搜索</view>
+  </view>
+
+  <!-- 筛选栏 -->
+  <scroll-view scroll-x class="filter-scroll" show-scrollbar="{{false}}">
+    <view class="filter-bar">
+      <view class="filter-item {{filters.recruitType ? 'active' : ''}}" bindtap="onFilterTap" data-type="recruitType">
+        {{filters.recruitType ? filters.recruitType : '招聘类型'}}<text class="arrow">▾</text>
+      </view>
+      <view class="filter-item {{filters.grade ? 'active' : ''}}" bindtap="onFilterTap" data-type="grade">
+        {{filters.grade ? filters.grade + '届' : '届别'}}<text class="arrow">▾</text>
+      </view>
+      <view class="filter-item {{filters.industry ? 'active' : ''}}" bindtap="onFilterTap" data-type="industry">
+        {{filters.industry ? filters.industry : '行业'}}<text class="arrow">▾</text>
+      </view>
+      <view class="filter-item {{filters.city ? 'active' : ''}}" bindtap="onFilterTap" data-type="city">
+        {{filters.city ? filters.city : '城市'}}<text class="arrow">▾</text>
+      </view>
+      <view class="filter-item {{filters.nature ? 'active' : ''}}" bindtap="onFilterTap" data-type="nature">
+        {{filters.nature ? filters.nature : '企业性质'}}<text class="arrow">▾</text>
+      </view>
+      <view class="filter-item {{filters.education ? 'active' : ''}}" bindtap="onFilterTap" data-type="education">
+        {{filters.education ? filters.education : '学历'}}<text class="arrow">▾</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 结果数 + 更新时间 -->
+  <view class="sort-bar">
+    <view class="sort-left">
+      <text wx:if="{{latestUpdate}}" class="update-text">更新于 {{latestUpdate}} · 新增 {{latestCount}} 条</text>
+    </view>
+    <view class="sort-right">共 {{total}} 家公司</view>
+  </view>
+
+  <!-- 与我匹配横条 -->
+  <view wx:if="{{currentTab === 'match'}}" class="match-bar">
+    <view class="match-info">
+      <view class="match-label">与我匹配</view>
+      <view class="match-text">{{hasMatchPref ? matchSummary : '未设置岗位偏好，点击右侧设置'}}</view>
+    </view>
+    <view class="match-btn" bindtap="goPreference">设置</view>
+  </view>
+
+  <!-- 公司列表 -->
+  <view class="company-list">
+    <view wx:for="{{companies}}" wx:key="company_name" class="card company-card" bindtap="goCompany" data-name="{{item.company_name}}">
+      <view class="company-header">
+        <view class="company-name">
+          {{item.company_name}}
+          <text wx:if="{{item.nature}}" class="nature-badge nature-{{item.natureClass}}">{{item.nature}}</text>
+        </view>
+        <view class="company-count">{{item.jobCount}}个岗位</view>
+      </view>
+
+      <view class="info-row" wx:if="{{item.positionArr.length}}">
+        <text class="info-label">岗位</text>
+        <view class="info-tags">
+          <text wx:for="{{item.positionArr}}" wx:key="*this" class="pos-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="info-row" wx:if="{{item.industryArr.length}}">
+        <text class="info-label">行业</text>
+        <view class="info-tags">
+          <text wx:for="{{item.industryArr}}" wx:key="*this" class="ind-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="info-row" wx:if="{{item.cityArr.length}}">
+        <text class="info-label">地点</text>
+        <view class="info-tags">
+          <text wx:for="{{item.cityArr}}" wx:key="*this" class="city-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="company-time">
+        <text wx:if="{{item.publishLabel}}" class="time-item">{{item.publishLabel}} 发布</text>
+        <text class="time-item {{item.latest_deadline_date ? 'time-deadline' : ''}}">{{item.deadlineLabel}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!companies.length && !loading}}" class="empty">
+      <text class="empty-icon">☰</text>
+      <text>没有找到相关公司</text>
+    </view>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="{{!hasMore && companies.length}}" class="loading">没有更多了</view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view wx:if="{{showPanel}}" class="panel-mask" bindtap="onPanelClose"></view>
+  <view wx:if="{{showPanel}}" class="panel">
+    <view class="panel-header">
+      <view class="panel-title">{{panelConfig.label}}</view>
+      <view class="panel-close" bindtap="onPanelClose">×</view>
+    </view>
+    <scroll-view scroll-y class="panel-options">
+      <!-- 城市: 省-市二级联动 -->
+      <block wx:if="{{panelConfig.field === 'city'}}">
+        <block wx:if="{{cityPanelLevel === 'province'}}">
+          <view class="city-group">特殊</view>
+          <view wx:for="{{citySpecial}}" wx:key="value"
+                class="panel-option {{item.selected ? 'selected' : ''}}"
+                bindtap="onCityOptionTap" data-value="{{item.value}}">{{item.value}}</view>
+          <view class="city-group">按省份</view>
+          <view wx:for="{{cityProvinces}}" wx:key="name"
+                class="panel-option {{item.selectedCount > 0 ? 'selected' : ''}}"
+                bindtap="onProvinceTap" data-name="{{item.name}}">
+            {{item.name}}
+            <text wx:if="{{item.selectedCount > 0}}" class="prov-badge">{{item.selectedCount}}</text>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="panel-option back" bindtap="onCityBack">‹ 返回</view>
+          <view wx:for="{{cityOptions}}" wx:key="value"
+                class="panel-option {{item.selected ? 'selected' : ''}}"
+                bindtap="onCityOptionTap" data-value="{{item.value}}">{{item.label}}</view>
+        </block>
+      </block>
+      <!-- 其他: 单级 -->
+      <block wx:else>
+        <view wx:for="{{panelOptions}}" wx:key="value"
+              class="panel-option {{item.selected ? 'selected' : ''}}"
+              bindtap="onOptionTap" data-value="{{item.value}}">
+          {{item.label}}
+        </view>
+      </block>
+    </scroll-view>
+    <view class="panel-footer">
+      <view class="panel-btn reset" bindtap="onPanelReset">重置</view>
+      <view class="panel-btn confirm" bindtap="onPanelConfirm">确定</view>
+    </view>
+  </view>
+
+  <!-- 绑定手机号弹窗 -->
+  <view wx:if="{{showBindPhone}}" class="bind-mask"></view>
+  <view wx:if="{{showBindPhone}}" class="bind-dialog">
+    <view class="bind-title">绑定手机号</view>
+    <view class="bind-desc">用于找回账号，请绑定你的手机号</view>
+    <input class="bind-input" type="number" maxlength="11" placeholder="请输入手机号"
+           value="{{bindPhoneInput}}" bindinput="onBindPhoneInput" />
+    <view class="bind-btns">
+      <view class="bind-btn cancel" bindtap="onBindPhoneCancel">暂不绑定</view>
+      <view class="bind-btn confirm" bindtap="onBindPhoneConfirm">确定</view>
+    </view>
+  </view>
+</view>

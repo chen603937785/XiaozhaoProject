@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: job-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/campus_job?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: ""
+  jackson:
+    date-format: yyyy-MM-dd
+    time-zone: GMT+8
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 微信小程序配置
+wechat:
+  appid: "你的小程序appid"
+  secret: "你的小程序secret"
+  # 开发模式下为 true 时, 登录接口直接返回 mock openid, 便于本地联调
+  mock-openid: true
+
+# JWT 密钥 (生产环境务必修改)
+jwt:
+  secret: "campus-job-secret-key-please-change-me-2026"
+  expire-days: 30
+
+# 管理后台账号
+admin:
+  username: admin
+  password: admin123
+
+logging:
+  level:
+    com.campus.job: info

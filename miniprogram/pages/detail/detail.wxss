@@ -1,0 +1,212 @@
+.page {
+  padding: 24rpx;
+  padding-bottom: 280rpx;
+}
+
+/* 顶部 */
+.head {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+}
+.company {
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.head-tags {
+  margin-bottom: 12rpx;
+}
+.deadline {
+  font-size: 26rpx;
+  color: #c2855c;
+}
+
+/* 信息卡片 */
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 20rpx;
+}
+.info-row {
+  display: flex;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.info-row:last-child {
+  border-bottom: none;
+}
+.info-label {
+  width: 160rpx;
+  color: #999;
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+.info-value {
+  flex: 1;
+  color: #333;
+  font-size: 28rpx;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.pos-chip {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  background: #f2f3f5;
+  border-radius: 8rpx;
+  margin: 0 12rpx 12rpx 0;
+  font-size: 26rpx;
+  color: #555;
+}
+
+/* 链接 */
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.link-row:last-of-type {
+  border-bottom: none;
+}
+.link-left {
+  flex: 1;
+  margin-right: 20rpx;
+  overflow: hidden;
+}
+.link-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+.link-url {
+  font-size: 24rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.link-btn {
+  padding: 10rpx 32rpx;
+  background: #b1ffec;
+  color: #324263;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
+}
+.link-tip {
+  font-size: 22rpx;
+  color: #bbb;
+  padding-top: 16rpx;
+}
+
+/* 底部操作栏 */
+.footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #f0f0f0;
+}
+.link-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.link-label {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  color: #324263;
+  font-weight: 500;
+  margin-right: 12rpx;
+}
+.link-addr {
+  flex: 1;
+  font-size: 24rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 12rpx;
+}
+.copy-btn {
+  flex-shrink: 0;
+  padding: 8rpx 24rpx;
+  background: #324263;
+  color: #fff;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+}
+.fav-btn {
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 40rpx;
+  background: #f2f3f5;
+  color: #666;
+  font-size: 28rpx;
+}
+.fav-btn.faved {
+  color: #999;
+}
+
+/* 观看广告确认弹窗 */
+.ad-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 300;
+}
+.ad-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16rpx;
+  width: 560rpx;
+  padding: 40rpx 32rpx 32rpx;
+  z-index: 301;
+  text-align: center;
+}
+.ad-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.ad-desc {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 32rpx;
+  line-height: 1.5;
+}
+.ad-btns {
+  display: flex;
+}
+.ad-btn {
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+.ad-btn.cancel {
+  background: #f2f3f5;
+  color: #666;
+  margin-right: 20rpx;
+}
+.ad-btn.confirm {
+  background: linear-gradient(135deg, #324263, #b1ffec);
+  color: #fff;
+}

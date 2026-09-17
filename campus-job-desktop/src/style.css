@@ -1,0 +1,36 @@
+:root {
+  --bg: #eef4fc;
+  --bg-side: #ffffff;
+  --card: #ffffff;
+  --navy: #1e3557;
+  --navy-deep: #172b4d;
+  --text: #60738f;
+  --text-sub: #9aaac0;
+  --primary: #4a86e8;
+  --primary-light: #5b97f2;
+  --blue-bg: #edf4ff;
+  --purple-bg: #f1eeff;
+  --orange-bg: #fff5e7;
+  --green-bg: #ecf8f2;
+  --border: #dce7f5;
+  --radius-lg: 24px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+  --shadow: 0 6px 20px rgba(30, 53, 87, 0.06);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  color: var(--text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}

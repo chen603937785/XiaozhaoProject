@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="tip">设置你的求职偏好，首页「与我匹配」会按这些条件为你推荐岗位</view>
+
+  <view wx:for="{{dimensions}}" wx:key="key" class="dimension">
+    <view class="dim-title">{{item.label}}</view>
+    <view class="dim-options">
+      <view wx:for="{{item.options}}" wx:for-item="opt" wx:key="value"
+            class="opt {{opt.selected ? 'selected' : ''}}"
+            bindtap="onOptionTap" data-dim="{{item.key}}" data-value="{{opt.value}}">
+        {{opt.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <view class="save-btn" bindtap="save">保存偏好</view>
+  </view>
+</view>

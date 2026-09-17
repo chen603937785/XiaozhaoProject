@@ -1,0 +1,26 @@
+<view class="page">
+  <view wx:if="{{jobs.length}}" class="job-list">
+    <view wx:for="{{jobs}}" wx:key="id" class="card job-card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="job-header">
+        <view class="job-company">{{item.companyName}}</view>
+        <view class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</view>
+      </view>
+      <view class="job-position">{{item.positionPreview}}</view>
+      <view class="job-tags">
+        <text wx:for="{{item.recruitTypeArr}}" wx:key="*this" class="tag tag-brand">{{item}}</text>
+        <text wx:for="{{item.industryArr}}" wx:key="*this" class="tag">{{item}}</text>
+        <text wx:for="{{item.cityArr}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="job-meta">
+        <text class="meta-item">{{item.companyNature}}</text>
+        <text class="meta-item">{{item.educationLabel}}</text>
+        <text class="meta-item">{{item.deadlineLabel}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <text class="empty-icon">☆</text>
+    <text>还没有收藏任何岗位</text>
+  </view>
+</view>

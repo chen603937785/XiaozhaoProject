@@ -1,0 +1,58 @@
+/* 全局样式 */
+page {
+  background: #f5fcfb;
+  font-size: 28rpx;
+  color: #333;
+  --brand: #324263;
+  --brand-light: #b1ffec;
+  --text-main: #333;
+  --text-sub: #999;
+}
+
+/* 通用按钮 */
+.btn-primary {
+  background: linear-gradient(135deg, #324263, #b1ffec);
+  color: #fff;
+  border-radius: 8rpx;
+  text-align: center;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+  background: #f0f0f0;
+  color: #666;
+  margin-right: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.tag-brand {
+  background: linear-gradient(135deg, #b1ffec, #9cecdb);
+  color: #324263;
+}
+
+/* 卡片 */
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  color: #bbb;
+  padding: 120rpx 0;
+  font-size: 28rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  display: block;
+  margin-bottom: 20rpx;
+}

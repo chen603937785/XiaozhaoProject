@@ -1,0 +1,21 @@
+# 编译产物
+**/node_modules/
+**/target/
+**/dist/
+
+# Python
+__pycache__/
+*.pyc
+
+# 系统文件
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# 本地 Maven 镜像配置（开发用，不推）
+backend/settings-aliyun.xml
+
+# 日志
+*.log

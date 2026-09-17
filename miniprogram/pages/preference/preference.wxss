@@ -1,0 +1,64 @@
+.page {
+  padding: 24rpx;
+  padding-bottom: 160rpx;
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #999;
+  background: #fff8e6;
+  border-radius: 8rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 20rpx;
+  line-height: 1.5;
+}
+
+.dimension {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.dim-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.dim-options {
+  display: flex;
+  flex-wrap: wrap;
+}
+.opt {
+  padding: 12rpx 28rpx;
+  margin: 0 16rpx 16rpx 0;
+  background: #f2f3f5;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+.opt.selected {
+  background: #b1ffec;
+  color: #324263;
+  font-weight: 500;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #f0f0f0;
+}
+.save-btn {
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #324263, #b1ffec);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 500;
+}

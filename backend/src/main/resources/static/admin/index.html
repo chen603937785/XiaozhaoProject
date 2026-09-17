@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校招岗位管理后台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f7; color: #333; }
+  a { color: #07c160; }
+
+  /* 登录 */
+  .login-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .login-box { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); width: 360px; }
+  .login-box h1 { font-size: 22px; margin-bottom: 8px; text-align: center; }
+  .login-box .sub { color: #999; font-size: 13px; text-align: center; margin-bottom: 28px; }
+  .login-box input { width: 100%; height: 44px; border: 1px solid #ddd; border-radius: 8px; padding: 0 14px; margin-bottom: 16px; font-size: 14px; }
+  .login-box button { width: 100%; height: 44px; background: #07c160; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  .login-err { color: #e74c3c; font-size: 13px; margin-bottom: 12px; text-align: center; min-height: 18px; }
+
+  /* 布局 */
+  .top { background: #fff; height: 56px; display: flex; align-items: center; padding: 0 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 10; }
+  .top .brand { font-size: 18px; font-weight: 600; }
+  .top nav { margin-left: 40px; display: flex; }
+  .top nav a { color: #666; text-decoration: none; padding: 0 16px; height: 56px; line-height: 56px; font-size: 15px; }
+  .top nav a.active { color: #07c160; border-bottom: 2px solid #07c160; font-weight: 600; }
+  .top .logout { margin-left: auto; color: #999; cursor: pointer; font-size: 14px; }
+  .main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .hidden { display: none !important; }
+
+  /* 统计卡片 */
+  .cards { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+  .card { background: #fff; border-radius: 12px; padding: 24px; flex: 1; min-width: 160px; }
+  .card .num { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+  .card .label { color: #999; font-size: 13px; }
+  .card.green .num { color: #07c160; }
+  .card.orange .num { color: #ff7d2a; }
+  .card.blue .num { color: #2b6cb0; }
+
+  /* 工具栏 */
+  .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .toolbar input, .toolbar select { height: 38px; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; font-size: 14px; }
+  .toolbar input { flex: 1; min-width: 200px; }
+  .toolbar button { height: 38px; padding: 0 20px; background: #07c160; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+  .toolbar button.gray { background: #888; }
+
+  /* 表格 */
+  table { width: 100%; background: #fff; border-radius: 12px; border-collapse: collapse; overflow: hidden; }
+  th, td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+  th { background: #fafafa; color: #666; font-weight: 600; }
+  tr:hover td { background: #fafafa; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
+  .tag.on { background: #e8f9ef; color: #07c160; }
+  .tag.off { background: #f0f0f0; color: #999; }
+  .op-btn { border: 1px solid #ddd; background: #fff; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-right: 6px; }
+  .op-btn.danger { color: #e74c3c; border-color: #f3c2c2; }
+  .op-btn.on { color: #07c160; border-color: #b5e8c8; }
+  .pagination { display: flex; gap: 8px; justify-content: center; margin-top: 20px; align-items: center; }
+  .pagination button { height: 34px; padding: 0 14px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; }
+  .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* 导入 */
+  .import-box { background: #fff; border-radius: 12px; padding: 32px; }
+  .import-box h2 { font-size: 18px; margin-bottom: 16px; }
+  .import-box p { color: #999; font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .import-box .file-area { border: 2px dashed #ddd; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; }
+  .import-box .file-area:hover { border-color: #07c160; }
+  .import-result { margin-top: 16px; padding: 16px; border-radius: 8px; display: none; }
+  .import-result.success { background: #e8f9ef; color: #07c160; display: block; }
+  .import-result.error { background: #fdeaea; color: #e74c3c; display: block; }
+
+  /* 设置开关 */
+  .setting-box { background: #fff; border-radius: 12px; padding: 32px; }
+  .setting-box h2 { font-size: 18px; margin-bottom: 8px; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-name { font-size: 15px; font-weight: 600; }
+  .setting-desc { font-size: 13px; color: #999; margin-top: 4px; }
+  .switch { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 26px; transition: .2s; }
+  .slider:before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: #07c160; }
+  .switch input:checked + .slider:before { transform: translateX(22px); }
+</style>
+</head>
+<body>
+
+<!-- 登录 -->
+<div id="loginView" class="login-wrap">
+  <div class="login-box">
+    <h1>校招岗位管理后台</h1>
+    <div class="sub">请登录</div>
+    <div class="login-err" id="loginErr"></div>
+    <input id="username" placeholder="用户名" autocomplete="username">
+    <input id="password" type="password" placeholder="密码" autocomplete="current-password">
+    <button onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div id="mainView" class="hidden">
+  <div class="top">
+    <div class="brand">校招岗位后台</div>
+    <nav>
+      <a data-tab="stats" class="active" onclick="switchTab('stats')">统计</a>
+      <a data-tab="users" onclick="switchTab('users')">用户</a>
+      <a data-tab="jobs" onclick="switchTab('jobs')">岗位</a>
+      <a data-tab="import" onclick="switchTab('import')">数据导入</a>
+      <a data-tab="settings" onclick="switchTab('settings')">设置</a>
+      <a data-tab="version" onclick="switchTab('version')">版本</a>
+      <a data-tab="redeem" onclick="switchTab('redeem')">兑换码</a>
+    </nav>
+    <div class="logout" onclick="logout()">退出登录</div>
+  </div>
+
+  <input type="file" id="uploadFileInput" style="display:none;">
+
+  <div class="main">
+    <!-- 统计 -->
+    <div id="tab-stats">
+      <div class="cards">
+        <div class="card green"><div class="num" id="stUser">-</div><div class="label">注册用户</div></div>
+        <div class="card blue"><div class="num" id="stJobOn">-</div><div class="label">上架岗位</div></div>
+        <div class="card"><div class="num" id="stJobOff">-</div><div class="label">下架岗位</div></div>
+        <div class="card orange"><div class="num" id="stFav">-</div><div class="label">收藏总数</div></div>
+        <div class="card"><div class="num" id="stToday">-</div><div class="label">今日新增用户</div></div>
+      </div>
+    </div>
+
+    <!-- 用户 -->
+    <div id="tab-users" class="hidden">
+      <table><thead><tr><th>ID</th><th>手机号</th><th>昵称</th><th>会员</th><th>到期时间</th><th>注册时间</th><th>操作</th></tr></thead>
+        <tbody id="userTbody"></tbody></table>
+      <div class="pagination" id="userPage"></div>
+    </div>
+
+    <!-- 岗位 -->
+    <div id="tab-jobs" class="hidden">
+      <div class="toolbar">
+        <input id="jobKw" placeholder="搜索公司名或岗位">
+        <select id="jobStatus">
+          <option value="">全部状态</option>
+          <option value="1">上架</option>
+          <option value="0">下架</option>
+        </select>
+        <button onclick="loadJobs(1)">搜索</button>
+      </div>
+      <table><thead><tr><th>ID</th><th>公司</th><th>招聘类型</th><th>城市</th><th>发布时间</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="jobTbody"></tbody></table>
+      <div class="pagination" id="jobPage"></div>
+    </div>
+
+    <!-- 导入 -->
+    <div id="tab-import" class="hidden">
+      <div class="import-box">
+        <h2>数据导入</h2>
+        <p>上传清洗后的 jobs.csv（19 列），将<strong>全量替换</strong>当前岗位数据。请先在本地运行清洗脚本生成 CSV。</p>
+        <div class="file-area" onclick="document.getElementById('fileInput').click()">
+          <div>点击选择 CSV 文件</div>
+          <div style="color:#bbb;font-size:12px;margin-top:8px" id="fileName">未选择文件</div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv" class="hidden" onchange="onFileChange(this)">
+        <button onclick="doImport()" id="importBtn" disabled>开始导入</button>
+        <div class="import-result" id="importResult"></div>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div id="tab-settings" class="hidden">
+      <div class="setting-box">
+        <h2>系统设置</h2>
+        <div class="setting-row">
+          <div>
+            <div class="setting-name">激励视频广告</div>
+            <div class="setting-desc">用户复制投递/网申链接前需观看激励广告（当日仅一次）</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgRewardAd" onchange="saveConfig()"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-name">绑定手机号弹窗</div>
+            <div class="setting-desc">未绑定手机号用户进入时是否弹出绑定提示</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgBindPhone" onchange="saveConfig()"><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 版本管理 -->
+    <div id="tab-version" class="hidden">
+      <div class="setting-box">
+        <h2>版本管理</h2>
+        <div style="display:flex;gap:40px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:380px;">
+            <h3 style="font-size:15px;margin:16px 0 10px;color:#333;">macOS 版本</h3>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">版本号</label><input id="macVersion" placeholder="如 0.2.0" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="macUrl" placeholder="如 app_0.2.0_universal.dmg" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('mac')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传安装包</button></div></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">更新说明（每行一条）</label><textarea id="macNote" rows="4" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:14px;box-sizing:border-box;"></textarea></div>
+          </div>
+          <div style="flex:1;min-width:380px;">
+            <h3 style="font-size:15px;margin:16px 0 10px;color:#333;">Windows 版本</h3>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">版本号</label><input id="winVersion" placeholder="如 0.2.0" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="winUrl" placeholder="如 app_0.2.0_x64.msi" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('win')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传安装包</button></div></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">更新说明（每行一条）</label><textarea id="winNote" rows="4" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:14px;box-sizing:border-box;"></textarea></div>
+          </div>
+        </div>
+        <button onclick="saveVersion()" style="height:40px;padding:0 28px;background:#07c160;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">发布新版本</button>
+      </div>
+    </div>
+
+    <!-- 兑换码管理 -->
+    <div id="tab-redeem" class="hidden">
+      <div class="setting-box">
+        <h2>兑换码管理</h2>
+        <div style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap;align-items:center;">
+          <select id="redeemPlanType" style="height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;">
+            <option value="MONTH">月卡（30天）</option>
+            <option value="QUARTER">季卡（90天）</option>
+            <option value="YEAR">年卡（365天）</option>
+          </select>
+          <input id="redeemCount" type="number" value="1" min="1" max="100" placeholder="数量" style="width:100px;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;">
+          <input id="redeemRemark" placeholder="备注（可选）" style="width:200px;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;">
+          <button onclick="generateRedeem()" style="height:38px;padding:0 20px;background:#07c160;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">生成兑换码</button>
+        </div>
+        <div id="redeemGenResult" style="font-size:13px;color:#07c160;margin-bottom:12px;white-space:pre-wrap;word-break:break-all;"></div>
+
+        <h3 style="font-size:15px;margin:16px 0 10px;">兑换码列表</h3>
+        <table><thead><tr><th>ID</th><th>兑换码</th><th>套餐</th><th>天数</th><th>状态</th><th>使用用户</th><th>使用时间</th><th>备注</th></tr></thead>
+          <tbody id="redeemCodeTbody"></tbody></table>
+        <div class="pagination" id="redeemCodePage"></div>
+
+        <h3 style="font-size:15px;margin:16px 0 10px;">兑换记录</h3>
+        <table><thead><tr><th>ID</th><th>兑换码</th><th>用户</th><th>套餐</th><th>天数</th><th>兑换时间</th></tr></thead>
+          <tbody id="redeemRecordTbody"></tbody></table>
+        <div class="pagination" id="redeemRecordPage"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = localStorage.getItem('admin_token');
+let currentPage = { users: 1, jobs: 1 };
+
+function api(path, method, body) {
+  return fetch(path, {
+    method: method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? 'Bearer ' + token : ''
+    },
+    body: body !== undefined ? body : undefined
+  }).then(r => {
+    if (r.status === 401) { logout(); throw new Error('登录已过期'); }
+    return r.json();
+  });
+}
+
+function doLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  document.getElementById('loginErr').textContent = '';
+  api('/admin/login', 'POST', JSON.stringify({ username, password }))
+    .then(res => {
+      if (res.code === 200) {
+        token = res.data.token;
+        localStorage.setItem('admin_token', token);
+        showMain();
+      } else {
+        document.getElementById('loginErr').textContent = res.message || '登录失败';
+      }
+    }).catch(e => {
+      document.getElementById('loginErr').textContent = e.message || '登录失败';
+    });
+}
+
+function logout() {
+  token = null;
+  localStorage.removeItem('admin_token');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('mainView').classList.add('hidden');
+}
+
+function showMain() {
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('mainView').classList.remove('hidden');
+  switchTab('stats');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.top nav a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+  ['stats', 'users', 'jobs', 'import', 'settings', 'version', 'redeem'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'stats') loadStats();
+  if (tab === 'users') loadUsers(1);
+  if (tab === 'jobs') loadJobs(1);
+  if (tab === 'settings') loadConfig();
+  if (tab === 'version') loadVersion();
+  if (tab === 'redeem') { loadRedeemCodes(1); loadRedeemRecords(1); }
+}
+
+function loadStats() {
+  api('/admin/stats').then(res => {
+    if (res.code !== 200) return;
+    const d = res.data;
+    document.getElementById('stUser').textContent = d.userCount;
+    document.getElementById('stJobOn').textContent = d.jobOnline;
+    document.getElementById('stJobOff').textContent = d.jobOffline;
+    document.getElementById('stFav').textContent = d.favoriteCount;
+    document.getElementById('stToday').textContent = d.todayUsers;
+  });
+}
+
+function loadUsers(page) {
+  currentPage.users = page;
+  api('/admin/users?page=' + page + '&size=20').then(res => {
+    if (res.code !== 200) return;
+    const rows = res.data.records || [];
+    document.getElementById('userTbody').innerHTML = rows.map(u => {
+      const vip = u.isVip === 1;
+      const expire = u.vipExpire ? String(u.vipExpire).replace('T', ' ').slice(0, 10) : '';
+      return '<tr><td>' + u.id + '</td><td>' + (u.phone || '-') + '</td><td>' + (u.nickname || '-') + '</td>' +
+        '<td>' + (vip ? '是' : '否') + '</td><td>' + (expire || '-') + '</td>' +
+        '<td>' + (u.createdAt || '').replace('T', ' ').slice(0, 19) + '</td>' +
+        '<td><button onclick="setUserVip(' + u.id + ',' + (vip ? 'true' : 'false') + ',\'' + expire + '\')">设置会员</button></td></tr>';
+    }).join('');
+    renderPage('userPage', page, res.data.pages, loadUsers);
+  });
+}
+
+function setUserVip(id, currentVip, currentExpire) {
+  const vipInput = prompt('设置会员状态：\n输入 1 = 会员，0 = 非会员', currentVip ? '1' : '0');
+  if (vipInput === null) return;
+  const isVip = vipInput.trim() === '1';
+  let expire = '';
+  if (isVip) {
+    expire = prompt('会员到期时间（yyyy-MM-dd，留空表示长期）', currentExpire || '');
+    if (expire === null) return;
+  }
+  api('/admin/users/' + id + '/vip', 'PUT', JSON.stringify({ isVip: String(isVip), expire: expire.trim() })).then(res => {
+    if (res.code === 200) {
+      alert('设置成功');
+      loadUsers(currentPage.users);
+    } else {
+      alert(res.message || '设置失败');
+    }
+  });
+}
+
+function loadJobs(page) {
+  currentPage.jobs = page;
+  const kw = document.getElementById('jobKw').value;
+  const status = document.getElementById('jobStatus').value;
+  let url = '/admin/jobs?page=' + page + '&size=20';
+  if (kw) url += '&keyword=' + encodeURIComponent(kw);
+  if (status) url += '&status=' + status;
+  api(url).then(res => {
+    if (res.code !== 200) return;
+    const rows = res.data.records || [];
+    document.getElementById('jobTbody').innerHTML = rows.map(j =>
+      '<tr>' +
+      '<td>' + j.id + '</td>' +
+      '<td>' + j.companyName + '</td>' +
+      '<td>' + (j.recruitTypes || '-') + '</td>' +
+      '<td>' + (j.cities || '-') + '</td>' +
+      '<td>' + (j.publishDate || '-') + '</td>' +
+      '<td>' + (j.status === 1 ? '<span class="tag on">上架</span>' : '<span class="tag off">下架</span>') + '</td>' +
+      '<td>' + (j.status === 1
+        ? '<button class="op-btn danger" onclick="toggleStatus(' + j.id + ',0)">下架</button>'
+        : '<button class="op-btn on" onclick="toggleStatus(' + j.id + ',1)">上架</button>') + '</td>' +
+      '</tr>'
+    ).join('');
+    renderPage('jobPage', page, res.data.pages, loadJobs);
+  });
+}
+
+function toggleStatus(id, status) {
+  api('/admin/jobs/' + id + '/status?status=' + status, 'PUT').then(res => {
+    if (res.code === 200) loadJobs(currentPage.jobs);
+    else alert(res.message || '操作失败');
+  });
+}
+
+function renderPage(elId, page, pages, fn) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<button onclick="' + fn.name + '(' + (page - 1) + ')" ' + (page <= 1 ? 'disabled' : '') + '>上一页</button>' +
+    '<span>第 ' + page + ' / ' + (pages || 1) + ' 页</span>' +
+    '<button onclick="' + fn.name + '(' + (page + 1) + ')" ' + (page >= pages ? 'disabled' : '') + '>下一页</button>';
+}
+
+let fileContent = null;
+function onFileChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('fileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => { fileContent = e.target.result; };
+  reader.readAsText(file, 'utf-8');
+  document.getElementById('importBtn').disabled = false;
+}
+
+function doImport() {
+  if (!fileContent) return;
+  if (!confirm('导入将全量替换现有岗位数据，确定继续？')) return;
+  const btn = document.getElementById('importBtn');
+  btn.disabled = true;
+  btn.textContent = '导入中...';
+  api('/admin/import', 'POST', fileContent).then(res => {
+    const el = document.getElementById('importResult');
+    if (res.code === 200) {
+      el.className = 'import-result success';
+      el.textContent = '导入成功，共 ' + res.data.count + ' 条岗位';
+    } else {
+      el.className = 'import-result error';
+      el.textContent = '导入失败：' + (res.message || '未知错误');
+    }
+    btn.disabled = false;
+    btn.textContent = '开始导入';
+  }).catch(e => {
+    const el = document.getElementById('importResult');
+    el.className = 'import-result error';
+    el.textContent = '导入失败：' + e.message;
+    btn.disabled = false;
+    btn.textContent = '开始导入';
+  });
+}
+
+function loadConfig() {
+  api('/admin/config').then(res => {
+    if (res.code !== 200) return;
+    document.getElementById('cfgRewardAd').checked = !!res.data.reward_ad_enabled;
+    document.getElementById('cfgBindPhone').checked = !!res.data.bind_phone_enabled;
+  });
+}
+
+function saveConfig() {
+  const body = {
+    reward_ad_enabled: document.getElementById('cfgRewardAd').checked,
+    bind_phone_enabled: document.getElementById('cfgBindPhone').checked
+  };
+  api('/admin/config', 'PUT', JSON.stringify(body)).then(res => {
+    if (res.code !== 200) alert(res.message || '保存失败');
+  });
+}
+
+function loadVersion() {
+  api('/admin/version').then(res => {
+    if (res.code !== 200) return;
+    const mac = res.data.mac || {};
+    const win = res.data.win || {};
+    document.getElementById('macVersion').value = mac.version || '';
+    document.getElementById('macUrl').value = mac.url || '';
+    document.getElementById('macNote').value = mac.note || '';
+    document.getElementById('winVersion').value = win.version || '';
+    document.getElementById('winUrl').value = win.url || '';
+    document.getElementById('winNote').value = win.note || '';
+  });
+}
+
+function saveVersion() {
+  const body = {
+    mac: {
+      version: document.getElementById('macVersion').value.trim(),
+      url: document.getElementById('macUrl').value.trim(),
+      note: document.getElementById('macNote').value
+    },
+    win: {
+      version: document.getElementById('winVersion').value.trim(),
+      url: document.getElementById('winUrl').value.trim(),
+      note: document.getElementById('winNote').value
+    }
+  };
+  api('/admin/version', 'POST', JSON.stringify(body)).then(res => {
+    if (res.code === 200) alert('发布成功');
+    else alert(res.message || '发布失败');
+  });
+}
+
+let uploadTarget = 'mac';
+function uploadFile(target) {
+  uploadTarget = target;
+  const input = document.getElementById('uploadFileInput');
+  input.accept = target === 'mac' ? '.dmg,.pkg,.zip,.tar.gz' : '.msi,.exe,.zip';
+  input.click();
+}
+
+document.getElementById('uploadFileInput').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('file', file);
+  fetch('/admin/upload', {
+    method: 'POST',
+    headers: { 'Authorization': token ? 'Bearer ' + token : '' },
+    body: formData
+  }).then(r => r.json()).then(res => {
+    if (res.code !== 200) { alert(res.message || '上传失败'); return; }
+    if (uploadTarget === 'mac') document.getElementById('macUrl').value = res.data.filename;
+    else document.getElementById('winUrl').value = res.data.filename;
+    alert('上传成功：' + res.data.filename);
+  }).catch(() => alert('上传失败'));
+});
+
+function generateRedeem() {
+  const planType = document.getElementById('redeemPlanType').value;
+  const count = parseInt(document.getElementById('redeemCount').value) || 1;
+  const remark = document.getElementById('redeemRemark').value;
+  api('/admin/redeem/generate', 'POST', JSON.stringify({ planType, count, remark })).then(res => {
+    if (res.code !== 200) { alert(res.message || '生成失败'); return; }
+    document.getElementById('redeemGenResult').textContent = '已生成 ' + res.data.length + ' 个兑换码：\n' + res.data.join('\n');
+    loadRedeemCodes(1);
+  });
+}
+
+function planLabel(t) {
+  return t === 'MONTH' ? '月卡' : t === 'QUARTER' ? '季卡' : t === 'YEAR' ? '年卡' : t;
+}
+
+function statusLabel(s) {
+  return s === 'UNUSED' ? '未使用' : s === 'USED' ? '已使用' : '已过期';
+}
+
+let redeemCodePage = 1, redeemRecordPage = 1;
+
+function loadRedeemCodes(page) {
+  redeemCodePage = page;
+  api('/admin/redeem/codes?page=' + page + '&size=20').then(res => {
+    if (res.code !== 200) return;
+    const rows = res.data.records || [];
+    document.getElementById('redeemCodeTbody').innerHTML = rows.map(r => {
+      return '<tr><td>' + r.id + '</td><td>' + r.code + '</td><td>' + planLabel(r.planType) + '</td><td>' + r.days + '</td>' +
+        '<td>' + statusLabel(r.status) + '</td><td>' + (r.usedBy || '-') + '</td><td>' + (r.usedAt || '').replace('T', ' ').slice(0, 16) + '</td>' +
+        '<td>' + (r.remark || '') + '</td></tr>';
+    }).join('');
+    renderPage('redeemCodePage', page, res.data.pages, loadRedeemCodes);
+  });
+}
+
+function loadRedeemRecords(page) {
+  redeemRecordPage = page;
+  api('/admin/redeem/records?page=' + page + '&size=20').then(res => {
+    if (res.code !== 200) return;
+    const rows = res.data.records || [];
+    document.getElementById('redeemRecordTbody').innerHTML = rows.map(r => {
+      return '<tr><td>' + r.id + '</td><td>' + r.code + '</td><td>' + r.userId + '</td><td>' + planLabel(r.planType) + '</td><td>' + r.days + '</td>' +
+        '<td>' + (r.redeemedAt || '').replace('T', ' ').slice(0, 19) + '</td></tr>';
+    }).join('');
+    renderPage('redeemRecordPage', page, res.data.pages, loadRedeemRecords);
+  });
+}
+
+// 初始化
+if (token) {
+  showMain();
+}
+</script>
+</body>
+</html>
