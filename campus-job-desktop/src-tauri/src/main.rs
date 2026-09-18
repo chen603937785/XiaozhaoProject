@@ -3,6 +3,8 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{LogicalPosition, LogicalSize, State, WebviewBuilder, WebviewUrl};
+#[cfg(target_os = "windows")]
+use tauri::Manager;
 
 struct TitleState(Arc<Mutex<HashMap<String, String>>>);
 
@@ -74,8 +76,15 @@ fn create_webview(
         // macOS: 持久化 cookie/session（WKWebView 用 data_store_identifier）
         builder = builder.data_store_identifier(*b"campus-job-web01");
     }
-    // Windows(WebView2) 默认已持久化 cookie/session，无需手动指定数据目录；
-    // 相对路径 data_directory 会导致 WebView2 初始化失败、页面一直加载中。
+    #[cfg(target_os = "windows")]
+    {
+        // 绝对路径的独立数据目录，避免与主 webview 共享 user data folder 冲突
+        if let Ok(dir) = window.app_handle().path().app_data_dir() {
+            builder = builder.data_directory(dir.join("webview-data"));
+        }
+        // 禁用 GPU 硬件加速，规避部分 Windows 显卡驱动下渲染进程 CPU/GPU 占满、页面卡死
+        builder = builder.additional_browser_args("--disable-gpu");
+    }
     window
         .add_child(
             builder,
