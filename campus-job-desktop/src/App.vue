@@ -791,6 +791,7 @@ onMounted(async () => {
           <span class="web-btn" title="放大" @click.stop="zoomIn">＋</span>
           <span class="web-btn" title="复制链接" @click.stop="copyLink">🔗</span>
           <span class="web-btn" title="浏览器打开" @click.stop="openInBrowser">🌐</span>
+          <span class="web-toolbar-tip">如遇网页无法加载，可到【系统设置】勾选「用电脑浏览器打开」</span>
         </div>
 
         <div class="scroll">
@@ -1213,6 +1214,7 @@ onMounted(async () => {
 .web-btn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 15px; cursor: pointer; }
 .web-btn:hover { background: #dfe9f6; }
 .web-zoom { font-size: 12px; color: var(--text-sub); min-width: 40px; text-align: center; }
+.web-toolbar-tip { margin-left: auto; font-size: 12px; color: #94a6ba; white-space: nowrap; }
 
 /* 占位页签 */
 .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: var(--text-sub); }

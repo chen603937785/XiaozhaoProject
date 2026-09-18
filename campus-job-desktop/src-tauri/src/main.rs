@@ -74,11 +74,8 @@ fn create_webview(
         // macOS: 持久化 cookie/session（WKWebView 用 data_store_identifier）
         builder = builder.data_store_identifier(*b"campus-job-web01");
     }
-    #[cfg(target_os = "windows")]
-    {
-        // Windows: 持久化数据目录（WebView2）
-        builder = builder.data_directory(std::path::PathBuf::from("webview-data"));
-    }
+    // Windows(WebView2) 默认已持久化 cookie/session，无需手动指定数据目录；
+    // 相对路径 data_directory 会导致 WebView2 初始化失败、页面一直加载中。
     window
         .add_child(
             builder,
