@@ -1,4 +1,4 @@
-const BASE_URL = 'http://101.37.69.124:8080';
+const BASE_URL = 'https://my88ai.com';
 
 export function getToken() {
   return localStorage.getItem('token') || '';
@@ -141,3 +141,11 @@ export function getLatestVersion() { return get('/api/version/latest'); }
 
 // 兑换码
 export function redeemCode(code) { return post('/api/redeem', { code }); }
+
+// 客服微信二维码（返回完整图片 URL，未配置则返回空串）
+export function getCustomerQr() {
+  return get('/api/config').then(cfg => {
+    const p = cfg && cfg.customerQrImage;
+    return p ? BASE_URL + p : '';
+  });
+}

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { updateNickname, redeemCode } from '../api';
+import { ref, computed, onMounted } from 'vue';
+import { updateNickname, redeemCode, getCustomerQr } from '../api';
 
 const props = defineProps({
   phone: String,
@@ -13,6 +13,12 @@ const emit = defineEmits(['close', 'logout', 'updateNickname', 'redeemed']);
 const codeInput = ref('');
 const redeeming = ref(false);
 const redeemMsg = ref('');
+
+const customerQr = ref('');
+
+onMounted(() => {
+  getCustomerQr().then(url => { customerQr.value = url; }).catch(() => {});
+});
 
 async function doRedeem() {
   const code = codeInput.value.trim();
@@ -96,6 +102,18 @@ async function saveNickname() {
         <input v-model="codeInput" class="promo-input" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
         <button class="code-btn" :disabled="redeeming" @click="doRedeem">{{ redeeming ? '兑换中...' : '立即兑换' }}</button>
         <div v-if="redeemMsg" class="redeem-msg" :class="{ error: redeemMsg.includes('失败') || redeemMsg.includes('不存在') || redeemMsg.includes('已使用') || redeemMsg.includes('过期') }">{{ redeemMsg }}</div>
+      </div>
+
+      <!-- 联系客服 -->
+      <div class="contact-box">
+        <div class="contact-text">
+          <div class="contact-title">联系客服获取兑换码</div>
+          <div class="contact-desc">扫码添加客服微信，获取会员兑换码</div>
+        </div>
+        <div class="contact-qr">
+          <img v-if="customerQr" :src="customerQr" alt="客服微信二维码" />
+          <span v-else class="contact-qr-empty">二维码未配置</span>
+        </div>
       </div>
 
       <div class="vip-tip">温馨提示：请确保网络正常，不要开代理</div>
@@ -342,6 +360,35 @@ async function saveNickname() {
 .code-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .redeem-msg { margin-top: 10px; font-size: 13px; color: #35b779; text-align: center; }
 .redeem-msg.error { color: #e35d5d; }
+
+/* 联系客服 */
+.contact-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: #f7fafd;
+  border: 1px solid #e3ecf6;
+  border-radius: 18px;
+  margin-bottom: 4px;
+}
+.contact-text { flex: 1; }
+.contact-title { font-size: 15px; font-weight: 600; color: #18385f; margin-bottom: 6px; }
+.contact-desc { font-size: 13px; color: #647b96; line-height: 1.5; }
+.contact-qr {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e3ecf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.contact-qr img { width: 100%; height: 100%; object-fit: cover; }
+.contact-qr-empty { font-size: 12px; color: #94a6ba; }
 
 .vip-tip { font-size: 13px; color: #94a6ba; margin-top: 16px; text-align: center; }
 </style>

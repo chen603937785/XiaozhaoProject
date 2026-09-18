@@ -317,7 +317,7 @@ async function checkUpdate() {
 function openUpdate() {
   const info = latestVersion.value;
   if (!info || !info.url) return;
-  const url = info.url.startsWith('http') ? info.url : ('http://101.37.69.124:8080/downloads/' + info.url);
+  const url = info.url.startsWith('http') ? info.url : ('https://my88ai.com/downloads/' + info.url);
   invoke('open_in_browser', { url }).catch(() => {});
 }
 
@@ -1383,7 +1383,15 @@ tbody tr:hover td { background: #f8fafd; }
 .settings-switch-label { font-size: 14px; color: var(--text); }
 .settings-switch-desc { font-size: 12px; color: var(--text-sub); }
 .settings-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
-.settings-switch input { opacity: 0; width: 0; height: 0; }
+.settings-switch input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  z-index: 1;
+}
 .settings-slider {
   position: absolute; inset: 0; cursor: pointer;
   background: #dce7f4; border-radius: 12px; transition: 0.2s;

@@ -139,4 +139,28 @@ public class AdminController {
             return Result.fail(500, "上传失败：" + e.getMessage());
         }
     }
+
+    /** 上传客服微信二维码，保存路径到配置表 */
+    @PostMapping("/customer-qr/upload")
+    public Result<Map<String, Object>> uploadCustomerQr(@RequestParam("file") MultipartFile file) {
+        try {
+            String original = file.getOriginalFilename();
+            String ext = ".png";
+            if (original != null && original.lastIndexOf('.') >= 0) {
+                ext = original.substring(original.lastIndexOf('.'));
+            }
+            String filename = "customer_qr_" + System.currentTimeMillis() + ext;
+            File dir = new File("/opt/campus-job/downloads/");
+            if (!dir.exists()) dir.mkdirs();
+            File dest = new File(dir, filename);
+            file.transferTo(dest);
+            String path = "/downloads/" + filename;
+            configService.setCustomerQr(path);
+            Map<String, Object> result = new HashMap<>();
+            result.put("url", path);
+            return Result.ok(result);
+        } catch (Exception e) {
+            return Result.fail(500, "上传失败：" + e.getMessage());
+        }
+    }
 }

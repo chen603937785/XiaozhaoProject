@@ -23,6 +23,8 @@ public class ConfigService {
     public static final String KEY_REWARD_AD = "reward_ad_enabled";
     /** 绑定手机号弹窗开关 */
     public static final String KEY_BIND_PHONE = "bind_phone_enabled";
+    /** 客服微信二维码图片路径 */
+    public static final String KEY_CUSTOMER_QR = "customer_qr_image";
 
     private static final String[] ALL_KEYS = {KEY_REWARD_AD, KEY_BIND_PHONE};
 
@@ -41,7 +43,18 @@ public class ConfigService {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("rewardAdEnabled", isEnabled(KEY_REWARD_AD));
         map.put("bindPhoneEnabled", isEnabled(KEY_BIND_PHONE));
+        map.put("customerQrImage", getValue(KEY_CUSTOMER_QR));
         return map;
+    }
+
+    /** 读取客服微信二维码路径 */
+    public String getCustomerQr() {
+        return getValue(KEY_CUSTOMER_QR);
+    }
+
+    /** 设置客服微信二维码路径 */
+    public void setCustomerQr(String path) {
+        setValue(KEY_CUSTOMER_QR, path);
     }
 
     /** 管理后台全量配置 */
