@@ -18,6 +18,11 @@ import ResumeManage from './components/ResumeManage.vue';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 
+// Mac 预览「打开网页收侧栏」。看完效果后改 false，Mac 还原为侧栏+内嵌网页。
+const PREVIEW_SPLIT_BROWSER_ON_MAC = true;
+// 原生网页与顶部工具条之间留出少量安全间距，避免高 DPI 下边界取整后发生覆盖。
+const BROWSER_TOP_GAP = 23;
+
 const menus = [
   { icon: '▦', label: '工作台', active: true },
   { icon: '▤', label: '岗位库' },
@@ -82,11 +87,11 @@ function activateTab(tab) {
   if (tab.id === '关注岗位') { loadFollowedIds(); followJobsKey.value++; }
   if (tab.id === '待办日历') calendarKey.value++;
   if (tab.id === '工作台') workbenchKey.value++;
-  // 恢复目标页签的滚动位置
   nextTick(() => {
     if (scrollEl && scrollPositions[tab.id] !== undefined) {
       scrollEl.scrollTop = scrollPositions[tab.id];
     }
+    syncWindowsBrowserLayout(tab);
   });
 }
 
@@ -104,6 +109,7 @@ function closeTab(id) {
     if (next && next.label) {
       invoke('show_webview', { label: next.label, show: true }).catch(() => {});
     }
+    nextTick(() => syncWindowsBrowserLayout(next));
   }
 }
 
@@ -272,7 +278,8 @@ function handleRequireLogin() {
 
 // ===== 版本更新 =====
 const currentVersion = ref('');
-const currentPlatform = ref('');
+const currentPlatform = ref(navigator.userAgent.toLowerCase().includes('windows') ? 'win' : 'mac');
+const useSplitBrowser = computed(() => currentPlatform.value === 'win' || PREVIEW_SPLIT_BROWSER_ON_MAC);
 const latestVersion = ref(null);
 const hasUpdate = ref(false);
 const checkingUpdate = ref(false);
@@ -511,18 +518,44 @@ function openBrowserUrl() {
   openLink(full);
 }
 
+function browserBounds() {
+  if (useSplitBrowser.value) {
+    const chromeEl = document.querySelector('.window-chrome');
+    const y = (chromeEl ? Math.ceil(chromeEl.getBoundingClientRect().bottom) : 88) + BROWSER_TOP_GAP;
+    return { x: 0, y, width: window.innerWidth, height: Math.max(200, window.innerHeight - y) };
+  }
+  const x = sidebarCollapsed.value ? 64 : 220;
+  const y = 118;
+  return { x, y, width: window.innerWidth - x, height: window.innerHeight - y };
+}
+
+function syncWindowsBrowserLayout(tab) {
+  if (!useSplitBrowser.value) return;
+  if (tab && tab.url && tab.label) {
+    const b = browserBounds();
+    invoke('layout_browser', { label: tab.label, ...b }).catch(() => {});
+  } else {
+    invoke('restore_main_layout').catch(() => {});
+  }
+}
+
 async function openLink(url) {
   if (!url) return;
   const label = 'web_' + Date.now();
   tabs.value.push({ id: label, title: '加载中...', closable: true, url, label });
   activateTab(tabs.value[tabs.value.length - 1]);
-  // 注入当前默认简历数据，供半自动填写助手使用
   await loadResumeForAutofill();
-  const x = sidebarCollapsed.value ? 64 : 220;
-  const y = 118;
-  const width = window.innerWidth - x;
-  const height = window.innerHeight - 118;
-  invoke('create_webview', { label, url, x, y, width, height }).catch(e => console.error(e));
+  await nextTick();
+  const { x, y, width, height } = browserBounds();
+  try {
+    await invoke('create_webview', { label, url, x, y, width, height });
+    await nextTick();
+    syncWindowsBrowserLayout(tabs.value.find(t => t.id === label));
+  } catch (e) {
+    console.error(e);
+    invoke('restore_main_layout').catch(() => {});
+    invoke('open_in_browser', { url }).catch(() => {});
+  }
   pollTitle(label);
 }
 
@@ -708,6 +741,9 @@ function onProvinceChange() {
 }
 
 onMounted(async () => {
+  window.addEventListener('resize', () => {
+    if (activeWebTab.value) syncWindowsBrowserLayout(activeWebTab.value);
+  });
   try {
     meta.value = await fetchMeta();
   } catch (e) {
@@ -733,7 +769,7 @@ onMounted(async () => {
   <div class="app">
     <div class="body">
       <!-- 左侧导航栏 -->
-      <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+      <aside class="sidebar" v-show="!(useSplitBrowser && activeWebTab)" :class="{ collapsed: sidebarCollapsed }">
         <div class="collapse-btn" @click="toggleSidebar">{{ sidebarCollapsed ? '»' : '«' }}</div>
         <div class="brand">
           <div class="brand-avatar"><div class="avatar-ring"><svg viewBox="0 0 48 48" width="38" height="38"><rect x="11" y="19" width="26" height="21" rx="7" fill="#4a86e8"/><circle cx="20" cy="28" r="3.2" fill="#fff"/><circle cx="28" cy="28" r="3.2" fill="#fff"/><rect x="18" y="34" width="12" height="3" rx="1.5" fill="#fff"/><line x1="24" y1="11" x2="24" y2="17" stroke="#4a86e8" stroke-width="2.5"/><circle cx="24" cy="9" r="2.5" fill="#4a86e8"/></svg></div></div>
@@ -768,6 +804,7 @@ onMounted(async () => {
 
       <!-- 右侧主内容区 -->
       <main class="content">
+        <div class="window-chrome">
         <div class="tabs">
           <div
             v-for="tab in tabs"
@@ -792,6 +829,7 @@ onMounted(async () => {
           <span class="web-btn" title="复制链接" @click.stop="copyLink">🔗</span>
           <span class="web-btn" title="浏览器打开" @click.stop="openInBrowser">🌐</span>
           <span class="web-toolbar-tip">如遇网页无法加载，可到【系统设置】勾选「用电脑浏览器打开」</span>
+        </div>
         </div>
 
         <div class="scroll">
@@ -1197,6 +1235,7 @@ onMounted(async () => {
 .account-desc.vip-expiring { color: #e35d5d; font-weight: 600; }
 
 .content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.window-chrome { flex-shrink: 0; }
 
 .tabs { height: 48px; flex-shrink: 0; display: flex; align-items: flex-end; gap: 6px; padding: 0 20px; background: #e9f1fb; overflow-x: auto; overflow-y: hidden; white-space: nowrap; }
 .tab { height: 40px; padding: 0 18px; display: flex; align-items: center; gap: 8px; background: #eef3fa; border-radius: 10px 10px 0 0; border: 1px solid transparent; font-size: 13px; color: #7d90ab; position: relative; cursor: pointer; flex-shrink: 0; }
