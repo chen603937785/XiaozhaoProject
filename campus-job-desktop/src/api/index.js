@@ -1,4 +1,5 @@
-const BASE_URL = 'https://my88ai.com';
+// 网页版和 API 同源部署；桌面版继续访问线上域名。
+const BASE_URL = import.meta.env.VITE_CAMPUS_WEB === 'true' ? '' : 'https://my88ai.com';
 
 export function getToken() {
   return localStorage.getItem('token') || '';
@@ -49,6 +50,14 @@ export function fetchJobs(params = {}) {
     .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
     .join('&');
   return get(`/api/jobs?${qs}`);
+}
+
+export function fetchCompanies(params = {}) {
+  const qs = Object.entries(params)
+    .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&');
+  return get(`/api/companies?${qs}`);
 }
 
 // 登录 / 注册

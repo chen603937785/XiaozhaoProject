@@ -18,6 +18,7 @@ import ResumeManage from './components/ResumeManage.vue';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 
+const IS_WEB = import.meta.env.VITE_CAMPUS_WEB === 'true';
 // Mac 预览「打开网页收侧栏」。看完效果后改 false，Mac 还原为侧栏+内嵌网页。
 const PREVIEW_SPLIT_BROWSER_ON_MAC = true;
 // 原生网页与顶部工具条之间留出少量安全间距，避免高 DPI 下边界取整后发生覆盖。
@@ -91,7 +92,7 @@ function activateTab(tab) {
     if (scrollEl && scrollPositions[tab.id] !== undefined) {
       scrollEl.scrollTop = scrollPositions[tab.id];
     }
-    syncWindowsBrowserLayout(tab);
+    if (!IS_WEB) syncWindowsBrowserLayout(tab);
   });
 }
 
@@ -109,7 +110,7 @@ function closeTab(id) {
     if (next && next.label) {
       invoke('show_webview', { label: next.label, show: true }).catch(() => {});
     }
-    nextTick(() => syncWindowsBrowserLayout(next));
+    if (!IS_WEB) nextTick(() => syncWindowsBrowserLayout(next));
   }
 }
 
@@ -120,7 +121,7 @@ const activeWebTab = computed(() => {
 
 function openInBrowser() {
   const tab = activeWebTab.value;
-  if (tab) invoke('open_in_browser', { url: tab.url }).catch(() => {});
+  if (tab) openUrlInBrowser(tab.url);
 }
 
 function copyLink() {
@@ -183,7 +184,7 @@ const filters = reactive({
 const sidebarCollapsed = ref(false);
 function toggleSidebar() { sidebarCollapsed.value = !sidebarCollapsed.value; }
 
-const showRegister = ref(true);
+const showRegister = ref(!IS_WEB);
 const loggedIn = ref(false);
 const userInfo = ref(null);
 
@@ -238,6 +239,33 @@ function requireVip() {
 }
 
 const showVipModal = ref(false);
+const showClientDownload = ref(false);
+const clientVersions = ref({ mac: {}, win: {} });
+const clientOs = computed(() => {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('windows')) return 'win';
+  if (ua.includes('mac')) return 'mac';
+  return '';
+});
+const clientOsLabel = computed(() => clientOs.value === 'win' ? 'Windows' : clientOs.value === 'mac' ? 'macOS' : '其他系统');
+
+function clientPackageUrl(platform) {
+  const info = clientVersions.value?.[platform] || {};
+  const raw = String(info.url || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return 'https://my88ai.com/downloads/' + encodeURIComponent(raw);
+}
+async function loadClientDownloads() {
+  if (!IS_WEB) return;
+  try { clientVersions.value = await getLatestVersion() || {}; }
+  catch { clientVersions.value = { mac: {}, win: {} }; }
+}
+function downloadClient(platform) {
+  const url = clientPackageUrl(platform);
+  if (!url) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
 
 function logout() {
   clearToken();
@@ -247,7 +275,7 @@ function logout() {
   plans.value = [];
   Object.keys(matchPref).forEach(k => matchPref[k] = '');
   showVipModal.value = false;
-  showRegister.value = true;
+  showRegister.value = !IS_WEB;
 }
 
 function onAccountClick() {
@@ -279,12 +307,13 @@ function handleRequireLogin() {
 // ===== 版本更新 =====
 const currentVersion = ref('');
 const currentPlatform = ref(navigator.userAgent.toLowerCase().includes('windows') ? 'win' : 'mac');
-const useSplitBrowser = computed(() => currentPlatform.value === 'win' || PREVIEW_SPLIT_BROWSER_ON_MAC);
+const useSplitBrowser = computed(() => !IS_WEB && (currentPlatform.value === 'win' || PREVIEW_SPLIT_BROWSER_ON_MAC));
 const latestVersion = ref(null);
 const hasUpdate = ref(false);
 const checkingUpdate = ref(false);
 
 async function initVersion() {
+  if (IS_WEB) return;
   try {
     currentVersion.value = await getVersion();
   } catch (e) {}
@@ -304,6 +333,7 @@ function compareVersion(a, b) {
 }
 
 async function checkUpdate() {
+  if (IS_WEB) return;
   checkingUpdate.value = true;
   try {
     const data = await getLatestVersion();
@@ -325,7 +355,7 @@ function openUpdate() {
   const info = latestVersion.value;
   if (!info || !info.url) return;
   const url = info.url.startsWith('http') ? info.url : ('https://my88ai.com/downloads/' + info.url);
-  invoke('open_in_browser', { url }).catch(() => {});
+  openUrlInBrowser(url);
 }
 
 function handleSelectStage(status) {
@@ -515,7 +545,8 @@ function openBrowserUrl() {
   const url = browserUrl.value.trim();
   if (!url) return;
   const full = /^https?:\/\//i.test(url) ? url : 'https://' + url;
-  openLink(full);
+  if (IS_WEB) openUrlInBrowser(full);
+  else openLink(full);
 }
 
 function browserBounds() {
@@ -541,6 +572,10 @@ function syncWindowsBrowserLayout(tab) {
 
 async function openLink(url) {
   if (!url) return;
+  if (IS_WEB) {
+    openUrlInBrowser(url);
+    return;
+  }
   const label = 'web_' + Date.now();
   tabs.value.push({ id: label, title: '加载中...', closable: true, url, label });
   activateTab(tabs.value[tabs.value.length - 1]);
@@ -607,12 +642,20 @@ function toggleAlwaysUseBrowser(val) {
 
 function openUrlInBrowser(url) {
   if (!url) return;
+  if (IS_WEB) {
+    try {
+      const target = new URL(url);
+      if (target.protocol !== 'http:' && target.protocol !== 'https:') return;
+      window.open(target.href, '_blank', 'noopener,noreferrer');
+    } catch (e) { console.warn('无效的网址', e); }
+    return;
+  }
   invoke('open_in_browser', { url }).catch(() => {});
 }
 
 function openLinkVip(url) {
   if (!requireVip()) return;
-  if (alwaysUseBrowser.value) {
+  if (IS_WEB || alwaysUseBrowser.value) {
     openUrlInBrowser(url);
   } else {
     openLink(url);
@@ -752,6 +795,7 @@ onMounted(async () => {
   loadJobs();
   await initVersion();
   checkUpdate();
+  loadClientDownloads();
   if (getToken()) {
     loggedIn.value = true;
     showRegister.value = false;
@@ -774,11 +818,20 @@ onMounted(async () => {
         <div class="brand">
           <div class="brand-avatar"><div class="avatar-ring"><svg viewBox="0 0 48 48" width="38" height="38"><rect x="11" y="19" width="26" height="21" rx="7" fill="#4a86e8"/><circle cx="20" cy="28" r="3.2" fill="#fff"/><circle cx="28" cy="28" r="3.2" fill="#fff"/><rect x="18" y="34" width="12" height="3" rx="1.5" fill="#fff"/><line x1="24" y1="11" x2="24" y2="17" stroke="#4a86e8" stroke-width="2.5"/><circle cx="24" cy="9" r="2.5" fill="#4a86e8"/></svg></div></div>
           <div class="brand-info" v-show="!sidebarCollapsed">
-            <div class="brand-name">求职助手</div>
-            <div class="brand-desc">校招求职管理</div>
-            <div class="brand-desc">一站式效率工具</div>
+            <template v-if="IS_WEB">
+              <div class="brand-name">橙子校招</div>
+              <div class="brand-desc">手机、电脑、客户端多端互通</div>
+            </template>
+            <template v-else>
+              <div class="brand-name">求职助手</div>
+              <div class="brand-desc">校招求职管理</div>
+              <div class="brand-desc">一站式效率工具</div>
+            </template>
           </div>
         </div>
+        <button v-if="IS_WEB" class="download-entry" :title="'下载客户端'" @click="showClientDownload = true; loadClientDownloads()">
+          <span>↓</span><span v-show="!sidebarCollapsed">下载客户端</span>
+        </button>
         <div class="brand-divider"></div>
 
         <nav class="menu">
@@ -1016,7 +1069,7 @@ onMounted(async () => {
           <div v-show="activeTabId === '岗位跳转'">
             <div class="card">
               <div class="match-head">岗位跳转</div>
-              <div class="match-desc">输入网址打开，可在页签栏控制缩放、前进、后退、刷新，支持自动填写简历</div>
+              <div class="match-desc">{{ IS_WEB ? '输入网申网址，在浏览器新页签打开。自动填写功能将在后续 Chrome/Edge 扩展中提供。' : '输入网址打开，可在页签栏控制缩放、前进、后退、刷新，支持自动填写简历' }}</div>
               <div class="toolbar-card" style="margin-bottom:0; padding:0; box-shadow:none;">
                 <div class="search-box">
                   <span class="search-icon">🔍</span>
@@ -1046,7 +1099,7 @@ onMounted(async () => {
           <div v-show="activeTabId === '系统设置'">
             <div class="settings-page">
               <div class="settings-title">系统设置</div>
-              <div class="card settings-card">
+              <div v-if="!IS_WEB" class="card settings-card">
                 <div class="settings-section">
                   <div class="settings-section-title">版本更新</div>
                   <div class="settings-row">
@@ -1069,7 +1122,7 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <div class="card settings-card">
+              <div v-if="!IS_WEB" class="card settings-card">
                 <div class="settings-section">
                   <div class="settings-section-title">网页打开方式</div>
                   <div class="settings-switch-row">
@@ -1080,6 +1133,12 @@ onMounted(async () => {
                     </label>
                   </div>
                   <div class="settings-switch-desc">智能填写插件将无法使用</div>
+                </div>
+              </div>
+              <div v-if="IS_WEB" class="card settings-card">
+                <div class="settings-section">
+                  <div class="settings-section-title">网页端说明</div>
+                  <div class="settings-switch-desc">岗位公告与投递地址会在浏览器新页签打开。简历自动填写需要未来的 Chrome/Edge 扩展，当前网页端不会访问第三方页面的表单。</div>
                 </div>
               </div>
             </div>
@@ -1107,6 +1166,23 @@ onMounted(async () => {
       @update-nickname="handleUpdateNickname"
       @redeemed="handleRedeemed"
     />
+
+    <div v-if="IS_WEB && showClientDownload" class="download-mask" @click.self="showClientDownload = false">
+      <section class="download-dialog">
+        <header>
+          <div><h3>下载客户端</h3><p>{{ clientOs ? ('当前电脑是 ' + clientOsLabel + '，已为你标出适合本机的版本') : '请选择与你的电脑系统匹配的安装包' }}</p></div>
+          <button @click="showClientDownload = false">关闭</button>
+        </header>
+        <div class="download-options">
+          <button :class="{ recommended: clientOs === 'mac' }" :disabled="!clientPackageUrl('mac')" @click="downloadClient('mac')">
+            <strong>Mac 版</strong><span>{{ clientVersions.mac?.version ? ('v' + clientVersions.mac.version) : '通用安装包' }}</span><em>{{ clientOs === 'mac' ? '适合本机' : (clientPackageUrl('mac') ? '下载' : '暂未上传') }}</em>
+          </button>
+          <button :class="{ recommended: clientOs === 'win' }" :disabled="!clientPackageUrl('win')" @click="downloadClient('win')">
+            <strong>Windows 版</strong><span>{{ clientVersions.win?.version ? ('v' + clientVersions.win.version) : '安装包' }}</span><em>{{ clientOs === 'win' ? '适合本机' : (clientPackageUrl('win') ? '下载' : '暂未上传') }}</em>
+          </button>
+        </div>
+      </section>
+    </div>
 
     <!-- 关注岗位 → 选择求职计划弹窗 -->
     <div v-if="showPlanSelect" class="plan-select-mask">
@@ -1181,6 +1257,22 @@ onMounted(async () => {
 .brand-name { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
 .brand-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
 .brand-divider { height: 1px; background: var(--border); margin: 14px 4px; }
+.download-entry { display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 8px); margin: 12px 4px 0; height: 40px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #2f80ed, #67b7f6); color: #fff; font-weight: 700; cursor: pointer; }
+.download-entry span:first-child { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,.2); line-height: 18px; }
+.download-mask { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; background: rgba(24, 39, 61, .42); }
+.download-dialog { width: min(560px, calc(100vw - 32px)); background: #fff; border-radius: 22px; padding: 22px; box-shadow: 0 24px 60px rgba(24,39,61,.2); }
+.download-dialog header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.download-dialog h3 { margin: 0 0 6px; color: #18385f; font-size: 22px; }
+.download-dialog p { margin: 0; color: #70849b; }
+.download-dialog header > button { border: 0; background: #f3f6fa; color: #60738f; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+.download-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.download-options button { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 118px; padding: 16px; border: 1px solid #e3ecf6; border-radius: 16px; background: #f8fbff; text-align: left; cursor: pointer; }
+.download-options button.recommended { border-color: #efd089; background: linear-gradient(180deg, #fffaf0, #fff3d4); }
+.download-options strong { color: #18385f; font-size: 18px; }
+.download-options span { color: #7d92a8; font-size: 13px; }
+.download-options em { margin-top: auto; color: #2f6f86; font-style: normal; font-weight: 700; }
+.download-options button.recommended em { color: #9a6634; }
+.download-options button:disabled { opacity: .55; cursor: not-allowed; }
 
 .menu { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
 .menu-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; color: #7d90ab; cursor: pointer; transition: all 0.15s; }

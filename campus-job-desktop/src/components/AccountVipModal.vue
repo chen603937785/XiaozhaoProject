@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { updateNickname, redeemCode, getCustomerQr } from '../api';
+import { computed, ref } from 'vue';
+import taobaoShopQr from '../assets/taobao-shop-qr.jpg';
+import { updateNickname, redeemCode } from '../api';
 
 const props = defineProps({
   phone: String,
@@ -13,12 +14,24 @@ const emit = defineEmits(['close', 'logout', 'updateNickname', 'redeemed']);
 const codeInput = ref('');
 const redeeming = ref(false);
 const redeemMsg = ref('');
+const showShop = ref(false);
+const copyMessage = ref('');
+const TAOBAO_CODE = '【淘宝】https://e.tb.cn/h.8wgjIq2YZ34lcLQ?tk=jbxiTlHwFYN MF278 ';
 
-const customerQr = ref('');
-
-onMounted(() => {
-  getCustomerQr().then(url => { customerQr.value = url; }).catch(() => {});
+const vipExpiring = computed(() => {
+  if (!props.isVip || !props.vipExpire) return false;
+  const expire = new Date(props.vipExpire + 'T00:00:00');
+  return (expire - new Date()) / 86400000 < 7;
 });
+
+async function copyTaobaoCode() {
+  try {
+    await navigator.clipboard.writeText(TAOBAO_CODE);
+    copyMessage.value = '口令已复制，打开淘宝即可跳转';
+  } catch {
+    copyMessage.value = '复制失败，请长按口令手动复制';
+  }
+}
 
 async function doRedeem() {
   const code = codeInput.value.trim();
@@ -79,6 +92,7 @@ async function saveNickname() {
       </div>
 
       <!-- 账号状态卡片 -->
+      <div class="vip-layout">
       <div class="acct-card">
         <div class="acct-avatar">👤</div>
         <div class="acct-meta">
@@ -91,32 +105,56 @@ async function saveNickname() {
             <span class="acct-name">{{ displayName }}</span>
             <span class="nickname-edit-btn" title="设置昵称" @click="startEditNickname">✎</span>
           </div>
-          <div class="acct-type">{{ isVip ? (vipExpire ? '会员 · 到期 ' + vipExpire : '会员用户') : '普通用户' }}</div>
+          <div class="acct-type" :class="{ expiring: vipExpiring }">{{ isVip ? (vipExpire ? '会员到期 ' + vipExpire : '会员已开通') : '普通用户 · 开通会员解锁更多功能' }}</div>
         </div>
         <button class="acct-logout" @click="emit('logout')">退出登录</button>
       </div>
+      <div class="vip-main">
+
+      <section class="membership-panel" aria-label="会员定价与功能对比">
+        <div class="membership-head">
+          <h3>会员定价</h3>
+          <span>兑换后立即生效</span>
+        </div>
+        <div class="membership-prices">
+          <article class="tier-month"><strong>月卡</strong><b>¥9.9</b><small>30 天</small></article>
+          <article class="tier-quarter"><strong>季卡</strong><b>¥25.9</b><small>90 天</small></article>
+          <article class="tier-year"><strong>年卡</strong><b>¥88</b><small>365 天</small></article>
+        </div>
+        <div class="membership-table-wrap">
+          <table class="membership-table">
+            <thead><tr><th>功能</th><th>非会员</th><th>会员</th></tr></thead>
+            <tbody>
+              <tr><td>岗位浏览与筛选</td><td>首页可看</td><td>全部可用</td></tr>
+              <tr><td>翻页查看更多岗位</td><td>不可用</td><td>可用</td></tr>
+              <tr><td>关注岗位与进度管理</td><td>不可用</td><td>可用</td></tr>
+              <tr><td>网申公告与投递直达</td><td>不可用</td><td>可用</td></tr>
+              <tr><td>求职计划与待办管理</td><td>不可用</td><td>可用</td></tr>
+              <tr><td>简历资料与自动填写</td><td>不可用</td><td>客户端可用</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- 兑换码 -->
       <div class="code-box">
         <div class="code-title">会员兑换</div>
-        <input v-model="codeInput" class="promo-input" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
-        <button class="code-btn" :disabled="redeeming" @click="doRedeem">{{ redeeming ? '兑换中...' : '立即兑换' }}</button>
+        <div class="code-row">
+          <input v-model="codeInput" class="promo-input" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
+          <button class="code-btn" :disabled="redeeming" @click="doRedeem">{{ redeeming ? '兑换中' : '立即兑换' }}</button>
+        </div>
         <div v-if="redeemMsg" class="redeem-msg" :class="{ error: redeemMsg.includes('失败') || redeemMsg.includes('不存在') || redeemMsg.includes('已使用') || redeemMsg.includes('过期') }">{{ redeemMsg }}</div>
+        <button class="get-code-btn" @click="showShop = true; copyMessage = ''">获取兑换码</button>
       </div>
-
-      <!-- 联系客服 -->
-      <div class="contact-box">
-        <div class="contact-text">
-          <div class="contact-title">联系客服获取兑换码</div>
-          <div class="contact-desc">扫码添加客服微信，获取会员兑换码</div>
-        </div>
-        <div class="contact-qr">
-          <img v-if="customerQr" :src="customerQr" alt="客服微信二维码" />
-          <span v-else class="contact-qr-empty">二维码未配置</span>
-        </div>
       </div>
-
-      <div class="vip-tip">温馨提示：请确保网络正常，不要开代理</div>
+      </div>
+      <div v-if="showShop" class="shop-mask" @click.self="showShop = false">
+        <section class="shop-dialog">
+          <header><h3>官方淘宝店获取</h3><button @click="showShop = false">关闭</button></header>
+          <div class="shop-method"><strong>获取方式 1</strong><p>淘宝 APP 扫描店铺二维码</p><img :src="taobaoShopQr" alt="官方淘宝店铺二维码" /></div>
+          <div class="shop-method"><strong>获取方式 2</strong><p>复制口令，打开淘宝自动跳转</p><code>{{ TAOBAO_CODE }}</code><button class="copy-btn" @click="copyTaobaoCode">复制口令</button><small>{{ copyMessage }}</small></div>
+        </section>
+      </div>
     </div>
   </div>
 </template>
@@ -135,12 +173,14 @@ async function saveNickname() {
 }
 
 .vip-modal {
-  width: 620px;
+  width: min(980px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   background: #ffffff;
   border-radius: 28px;
   border: 1px solid #eef4fb;
   box-shadow: 0 24px 64px rgba(30, 60, 100, 0.16);
-  padding: 30px 34px 26px;
+  padding: 24px 28px 22px;
   box-sizing: border-box;
 }
 
@@ -149,7 +189,7 @@ async function saveNickname() {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 .vip-brand {
   font-size: 14px;
@@ -211,6 +251,9 @@ async function saveNickname() {
 .nickname-save:disabled { opacity: 0.5; cursor: not-allowed; }
 .nickname-cancel { height: 32px; padding: 0 12px; border: 1px solid #d4e6f8; border-radius: 8px; background: #fff; color: #647b96; font-size: 13px; cursor: pointer; }
 .acct-type { font-size: 13px; color: #647b96; margin-top: 4px; }
+.acct-type.expiring { color: #e35d5d; font-weight: 700; }
+.vip-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 18px; align-items: start; }
+.vip-main { min-width: 0; }
 .acct-logout {
   padding: 8px 20px;
   border: 1px solid #d4e6f8;
@@ -345,19 +388,54 @@ async function saveNickname() {
 
 /* 兑换码 */
 .code-box { margin-bottom: 18px; }
+.membership-panel { margin-bottom: 18px; }
+.membership-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.membership-head h3 { margin: 0; font-size: 15px; color: #18385f; }
+.membership-head span { color: #8aa0b7; font-size: 12px; }
+.membership-prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.membership-prices article { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 10px; border: 1px solid #e3ecf6; border-radius: 12px; background: #f8fbff; text-align: center; }
+.membership-prices .tier-month { border-color: #d9e4ee; background: linear-gradient(180deg, #f8fbfd, #eef4f8); }
+.membership-prices .tier-quarter { border-color: #efd089; background: linear-gradient(180deg, #fffaf0, #ffe8b8); }
+.membership-prices .tier-year { border-color: #e2b15a; background: linear-gradient(180deg, #fff4d4, #f6c96a); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
+.membership-prices strong { color: #18385f; font-size: 13px; }
+.membership-prices b { color: #df5b45; font-size: 20px; line-height: 1.1; }
+.membership-prices small { color: #7d92a8; font-size: 12px; }
+.membership-table-wrap { overflow-x: auto; border: 1px solid #e3ecf6; border-radius: 12px; }
+.membership-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.membership-table th, .membership-table td { padding: 8px 7px; border-bottom: 1px solid #edf2f7; text-align: center; white-space: nowrap; }
+.membership-table th:first-child, .membership-table td:first-child { text-align: left; }
+.membership-table th { color: #6d8298; background: #f7fafd; font-weight: 600; }
+.membership-table td:last-child { color: #2f6f86; font-weight: 700; }
+.membership-table tr:last-child td { border-bottom: 0; }
 .code-title { font-size: 15px; font-weight: 600; color: #18385f; margin-bottom: 12px; }
 .code-btn {
-  width: 100%;
-  height: 52px;
+  flex: none;
+  height: 42px;
+  padding: 0 16px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 .code-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.vip-layout .acct-card { flex-direction: column; align-items: flex-start; margin-bottom: 0; }
+.vip-layout .acct-logout { margin-top: 8px; }
+.code-row { display: flex; gap: 8px; }
+.code-row .promo-input { flex: 1; width: auto; height: 42px; margin-bottom: 0; }
+.get-code-btn { width: 100%; height: 46px; margin-top: 12px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #f6c453, #e9a322); color: #5b3b08; font-size: 16px; font-weight: 800; box-shadow: 0 8px 18px rgba(214, 154, 32, .25); cursor: pointer; }
+.shop-mask { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; background: rgba(24, 36, 52, .42); }
+.shop-dialog { width: min(460px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; background: #fff; border-radius: 18px; padding: 18px; }
+.shop-dialog header { display: flex; justify-content: space-between; align-items: center; }
+.shop-dialog h3 { margin: 0; color: #18385f; }
+.shop-dialog header button { border: 0; border-radius: 8px; background: #f2f5f8; color: #324263; padding: 7px 12px; cursor: pointer; }
+.shop-method { margin-top: 16px; }
+.shop-method p, .shop-method small { color: #708294; }
+.shop-method img { display: block; width: 178px; height: 178px; margin: 8px auto; border: 8px solid #fff7df; border-radius: 12px; box-shadow: 0 0 0 1px #f0d48a; }
+.shop-method code { display: block; margin: 8px 0; padding: 10px; border-radius: 8px; background: #f7f8fa; color: #324263; overflow-wrap: anywhere; }
+.copy-btn { border: 0; border-radius: 8px; background: #324263; color: #fff; padding: 8px 14px; cursor: pointer; }
 .redeem-msg { margin-top: 10px; font-size: 13px; color: #35b779; text-align: center; }
 .redeem-msg.error { color: #e35d5d; }
 
