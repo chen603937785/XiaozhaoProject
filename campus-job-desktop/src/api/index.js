@@ -158,3 +158,6 @@ export function getCustomerQr() {
     return p ? BASE_URL + p : '';
   });
 }
+
+// 公开配置（含后台可配的会员原价、限时价）
+export function getPublicConfig() { return get('/api/config'); }

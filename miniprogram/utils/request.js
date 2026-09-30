@@ -1,8 +1,7 @@
 const { BASE_URL } = require('./config');
-const { login } = require('./auth');
 
 /**
- * 统一请求封装: 自动携带 token, 401 时自动重登并重试一次
+ * 统一请求封装：自动携带客户端同款 token。过期后提示重新登录，不切换成微信匿名账号。
  */
 function request(url, method, data, retry) {
   return new Promise((resolve, reject) => {
@@ -17,11 +16,12 @@ function request(url, method, data, retry) {
       },
       success(res) {
         const bizCode = res.data && res.data.code;
-        // 未登录或 token 过期 -> 重新登录后重试一次
-        if ((res.statusCode === 401 || bizCode === 401) && !retry) {
-          login().then(() => {
-            request(url, method, data, true).then(resolve).catch(reject);
-          }).catch(reject);
+        if (res.statusCode === 401 || bizCode === 401) {
+          if (token) {
+            ['token', 'userId', 'phone'].forEach(key => wx.removeStorageSync(key));
+            getApp().syncGlobal();
+          }
+          reject(new Error('请先在「我的」登录'));
           return;
         }
         if (res.statusCode >= 200 && res.statusCode < 300 && bizCode === 200) {
@@ -41,5 +41,6 @@ function request(url, method, data, retry) {
 module.exports = {
   get: (url) => request(url, 'GET'),
   post: (url, data) => request(url, 'POST', data),
+  put: (url, data) => request(url, 'PUT', data),
   del: (url) => request(url, 'DELETE')
 };

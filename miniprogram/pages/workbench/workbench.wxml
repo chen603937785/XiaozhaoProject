@@ -1,0 +1,72 @@
+<brand-nav section="工作台" />
+<view class="wb-page">
+  <view class="wb-hero">
+    <view class="wb-hero-orb wb-orb-one"></view><view class="wb-hero-orb wb-orb-two"></view>
+    <view class="wb-hero-content">
+      <view class="wb-topline"><text class="wb-brand">小麦说职位 · 工作台</text><text class="wb-date">{{todayLabel}}</text></view>
+      <view wx:if="{{loggedIn}}" class="wb-greeting">{{greeting}}，{{name}}</view>
+      <view wx:else class="wb-greeting">让求职进展，一目了然</view>
+      <view class="wb-hero-desc">{{loggedIn ? '今天也朝着心仪的 Offer 前进一步' : '岗位、计划、投递进度与待办，一个地方管好'}}</view>
+      <view class="wb-hero-chip">手机 · 电脑 · 客户端多端互通</view>
+    </view>
+  </view>
+
+  <view class="wb-market-card">
+    <view class="wb-market-head"><text>今日校招岗位已更新</text><text class="wb-live-pill">实时更新</text></view>
+    <view class="wb-market-stats" bindtap="jobs">
+      <view class="wb-summary-item"><text class="wb-summary-number wb-market-new">{{newJobsText || '—'}}</text><text>7日新增岗位(个)</text></view>
+      <view class="wb-summary-sep"></view>
+      <view class="wb-summary-item"><text class="wb-summary-number">{{allJobsText || '—'}}</text><text>总岗位数(个)</text></view>
+      <view class="wb-summary-sep"></view>
+      <view class="wb-summary-item"><text class="wb-summary-number">{{companiesText || '—'}}</text><text>收录企业(家)</text></view>
+    </view>
+    <view wx:if="{{statsError}}" class="wb-error" bindtap="loadJobStats">{{statsError}}</view>
+  </view>
+  <block wx:if="{{!loggedIn}}">
+    <view class="wb-login-card">
+      <view class="wb-login-mark">✦</view>
+      <view class="wb-login-title">登录后，开启你的专属工作台</view>
+      <view class="wb-login-copy">使用与电脑端相同的手机号账号，求职记录自动同步。</view>
+      <view class="wb-login-features">
+        <view><text class="wb-feature-icon">◎</text><text>关注岗位与投递进度</text></view>
+        <view><text class="wb-feature-icon">▦</text><text>求职计划与待办日历</text></view>
+      </view>
+      <button class="wb-main-btn" bindtap="login">登录 / 注册账号 <text>→</text></button>
+      <view class="wb-login-foot">已有电脑端账号？直接登录即可互通</view>
+    </view>
+    <view class="wb-guest-card" bindtap="jobs">
+      <view class="wb-guest-icon">⌕</view>
+      <view class="wb-guest-text"><view>先逛逛岗位库</view><text>不用登录，也能浏览最新校招岗位</text></view>
+      <text class="wb-guest-arrow">›</text>
+    </view>
+  </block>
+
+  <block wx:else>
+
+    <view class="wb-section-head"><view><text class="wb-section-dot wb-dot-orange"></text><text>今日与逾期待办</text></view><text class="wb-section-link" bindtap="calendar">查看日历 ›</text></view>
+    <view class="wb-panel wb-todo-panel">
+      <view wx:for="{{todos}}" wx:key="id" class="wb-todo"><view class="wb-todo-marker"></view><view class="wb-todo-body"><view class="wb-todo-title">{{item.title}}</view><view class="wb-todo-time">{{item.time}}</view></view><button class="wb-done-btn" bindtap="complete" data-id="{{item.id}}">完成</button></view>
+      <view wx:if="{{!todos.length}}" class="wb-todo-empty"><text>✓</text><view>今天的待办已经清空</view><text>继续保持，去看看新的机会吧</text><button bindtap="calendar">打开待办日历 ›</button></view>
+    </view>
+
+    <view class="wb-section-head"><view><text class="wb-section-dot wb-dot-purple"></text><text>求职进度</text></view><text class="wb-section-link" bindtap="follow">查看关注岗位 ›</text></view>
+    <view class="wb-panel"><view class="wb-stage-grid"><view wx:for="{{stages}}" wx:key="key" class="wb-stage" bindtap="stage" data-key="{{item.key}}"><view class="wb-stage-count" style="color:{{item.color}}">{{item.count}}</view><view class="wb-stage-name">{{item.label}}</view></view></view><view wx:if="{{!total}}" class="wb-stage-tip">去岗位库关注岗位，求职进度就会显示在这里</view></view>
+
+    <view class="wb-section-head"><view><text class="wb-section-dot"></text><text>我的求职计划</text></view><text wx:if="{{current}}" class="wb-section-link" bindtap="manage">管理计划 ›</text></view>
+    <view class="wb-panel wb-plan-panel">
+      <block wx:if="{{current}}">
+        <picker range="{{plans}}" range-key="planName" value="{{planIndex}}" bindchange="choosePlan">
+          <view class="wb-plan-title"><view><text class="wb-plan-icon">✦</text><text class="wb-plan-name">{{current.planName}}</text></view><text class="wb-plan-switch">切换 ▾</text></view>
+        </picker>
+        <view class="wb-plan-sub">{{current.status === 'IN_PROGRESS' ? '进行中' : '当前计划'}} · 已关注 {{current.jobCount}} 个岗位</view>
+        <view class="wb-progress-line"><view class="wb-progress-fill" style="width:{{current.completion}}%"></view></view>
+        <view class="wb-progress-meta"><text>投递目标进度</text><text>{{current.completion}}%</text></view>
+        <view class="wb-plan-stats"><view><text>{{current.appliedCount}}</text>已投递</view><view><text>{{current.interviewCount}}</text>面试</view><view><text>{{current.offerCount}}</text>Offer</view></view>
+        <view class="wb-plan-actions"><button wx:if="{{current.status !== 'IN_PROGRESS'}}" class="wb-outline-btn" bindtap="activate">设为进行中</button><button class="wb-outline-btn" bindtap="newPlan">＋ 新建计划</button></view>
+      </block>
+      <view wx:else class="wb-plan-empty"><view class="wb-empty-art">✦</view><view>还没有求职计划</view><text>为这次校招定个小目标，从关注第一个岗位开始</text><button class="wb-main-btn" bindtap="newPlan">创建求职计划</button></view>
+    </view>
+
+    <view wx:if="{{error}}" class="wb-error">{{error}}</view><view wx:if="{{loading}}" class="wb-loading">正在同步工作台…</view>
+  </block>
+</view>

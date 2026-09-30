@@ -19,7 +19,7 @@
 .head-count {
   font-size: 24rpx;
   color: #324263;
-  background: #b1ffec;
+  background: #eaf2ff;
   padding: 6rpx 16rpx;
   border-radius: 24rpx;
 }

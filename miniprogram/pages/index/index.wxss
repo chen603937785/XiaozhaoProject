@@ -1,46 +1,60 @@
 .page {
   padding-bottom: 40rpx;
 }
+.job-actions{display:flex;align-items:center;gap:22rpx}.job-actions button{margin:0}.company-name{color:#18385f}.company-count{color:#7d92a8}.tab.active{color:#3286ee}.company-meta-row{display:flex;align-items:center;justify-content:space-between;margin-top:18rpx;padding-top:14rpx;border-top:1rpx solid #eef2f6}.company-meta-row .company-time{margin-top:0}.text-action{padding:0;background:transparent;border:0;line-height:1;font-size:23rpx;font-weight:600}.text-action::after{border:0}.notice-action{color:#6f82a2}.apply-action{color:#3286ee}.follow-action{color:#f08a45}.follow-action.followed{color:#8ca0b5}
 
 /* 顶部: 分栏 + 搜索 icon */
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 24rpx 12rpx;
-  background: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  padding: 18rpx 24rpx;
+  gap: 16rpx;
+  background: linear-gradient(115deg, #edf5ff, #f8fbff);
 }
 .tabs {
   display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 8rpx;
+  padding: 6rpx;
+  background: #e6effa;
+  border-radius: 24rpx;
 }
 .tab {
-  font-size: 32rpx;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 27rpx;
   font-weight: 500;
-  color: #999;
-  margin-right: 40rpx;
+  color: #71869f;
   position: relative;
-  padding-bottom: 8rpx;
+  padding: 15rpx 8rpx;
+  line-height: 1.4;
+  border-radius: 19rpx;
 }
 .tab.active {
-  color: #324263;
+  color: #2674cd;
   font-weight: 600;
+  background: linear-gradient(135deg, #fff, #f1f7ff);
+  box-shadow: 0 3rpx 10rpx rgba(50, 100, 160, .09);
 }
 .tab.active::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 6rpx;
-  border-radius: 3rpx;
-  background: linear-gradient(90deg, #324263, #b1ffec);
+  content: none;
 }
 .search-icon {
-  padding: 8rpx 12rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 24rpx;
+  background: #fff;
+  border: 1rpx solid #e0ebfa;
+  box-shadow: 0 3rpx 10rpx rgba(50,100,160,.04);
 }
 
 /* 搜索框(展开时) */
@@ -98,6 +112,8 @@
   color: #324263;
 }
 
+
+
 /* 结果数 + 更新时间 */
 .sort-bar {
   display: flex;
@@ -140,7 +156,7 @@
 .company-count {
   font-size: 24rpx;
   color: #fff;
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: #eef4fb;
   padding: 6rpx 16rpx;
   border-radius: 24rpx;
   flex-shrink: 0;
@@ -226,6 +242,7 @@
 .time-deadline {
   color: #c2855c;
 }
+.time-today{color:#e34b4b;font-weight:600}
 
 /* 加载状态 */
 .loading {
@@ -288,7 +305,7 @@
   color: #333;
 }
 .panel-option.selected {
-  background: #b1ffec;
+  background: #eaf2ff;
   color: #324263;
   font-weight: 500;
 }
@@ -311,7 +328,7 @@
   text-align: center;
   padding: 0 8rpx;
   border-radius: 16rpx;
-  background: #324263;
+  background: #3286ee;
   color: #fff;
   font-size: 20rpx;
   margin-left: 8rpx;
@@ -334,7 +351,7 @@
   margin-right: 24rpx;
 }
 .panel-btn.confirm {
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #fff;
 }
 
@@ -396,7 +413,7 @@
   margin-right: 20rpx;
 }
 .bind-btn.confirm {
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #fff;
 }
 
@@ -427,9 +444,20 @@
 }
 .match-btn {
   padding: 12rpx 32rpx;
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #fff;
   border-radius: 36rpx;
   font-size: 26rpx;
   flex-shrink: 0;
 }
+.company-header{align-items:flex-start;gap:16rpx}.company-name{flex:1;min-width:0;flex-wrap:wrap;gap:8rpx;line-height:1.5}
+.company-card .nature-badge{margin-left:0;padding:3rpx 10rpx;font-size:20rpx;line-height:1.5;border-radius:8rpx;background:#edf5ff;color:#4778b0;border:1rpx solid #dae9fc}
+.company-card .nature-central{background:#e7f0ff;color:#316ec0}.company-card .nature-institution{background:#edf2fa;color:#5b7398}.company-card .nature-other{background:#f2f5f9;color:#718198}
+.deadline-text{max-width:190rpx;flex-shrink:0;font-size:21rpx;line-height:1.6;color:#8796a9;padding-top:5rpx;text-align:right;word-break:break-all;background:transparent}
+.position-preview{flex:1;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:40rpx;max-height:80rpx;font-size:24rpx;color:#334d6e;word-break:break-all}
+.location-row{align-items:flex-start;gap:8rpx}.location-row .info-tags{min-width:0}.recruit-label{max-width:180rpx;flex-shrink:0;padding:5rpx 12rpx;border-radius:10rpx;background:#eef5ff;color:#3976be;font-size:21rpx;line-height:30rpx;text-align:right}
+.company-meta-row{gap:10rpx;flex-wrap:wrap}.company-time{flex-shrink:0}.job-actions{gap:10rpx;margin-left:auto}
+.job-actions .text-action{padding:0 17rpx;height:54rpx;line-height:54rpx;border-radius:14rpx;font-size:22rpx;font-weight:600;border:1rpx solid #dce9f9;box-sizing:border-box}
+.job-actions .notice-action{background:#f6f9fe;color:#587da9}.job-actions .apply-action{background:#eaf3ff;color:#2877d6}
+.job-actions .follow-action{background:linear-gradient(135deg,#3286ee,#5ba6ef);color:#fff;border-color:transparent;box-shadow:0 4rpx 10rpx rgba(50,134,238,.12)}
+.job-actions .follow-action.followed{background:#f0f4f8;color:#8a9caf;border-color:#e5ebf2;box-shadow:none}

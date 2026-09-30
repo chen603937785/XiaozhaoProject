@@ -38,10 +38,14 @@
   color: #333;
 }
 .opt.selected {
-  background: #b1ffec;
+  background: #eaf2ff;
   color: #324263;
   font-weight: 500;
 }
+
+
+
+
 
 .footer {
   position: fixed;
@@ -57,7 +61,7 @@
   text-align: center;
   padding: 24rpx 0;
   border-radius: 44rpx;
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #fff;
   font-size: 30rpx;
   font-weight: 500;

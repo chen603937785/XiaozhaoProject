@@ -24,6 +24,19 @@ wechat:
   secret: "你的小程序secret"
   # 开发模式下为 true 时, 登录接口直接返回 mock openid, 便于本地联调
   mock-openid: true
+  virtual-payment:
+    # 开通后在服务器外部 application.yml 覆盖，仓库不保存正式密钥
+    enabled: false
+    offer-id: ""
+    app-key: ""
+    callback-token: ""
+    encoding-aes-key: ""
+    month-product-id: ""
+    quarter-product-id: ""
+    year-product-id: ""
+    month-price: 0
+    quarter-price: 0
+    year-price: 0
 
 # JWT 密钥 (生产环境务必修改)
 jwt:

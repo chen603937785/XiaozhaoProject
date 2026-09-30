@@ -1,0 +1,8 @@
+<view class="navigation" style="padding-top:{{statusHeight}}px">
+  <view class="navigation-row" style="height:{{navHeight}}px">
+    <view class="wordmark-area" style="max-width:{{contentWidth}}px">
+      <view class="wordmark"><text class="wordmark-main">小麦</text><text class="wordmark-tail">说职位</text></view>
+      <text class="section">{{section}}</text>
+    </view>
+  </view>
+</view>

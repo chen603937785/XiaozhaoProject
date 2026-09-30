@@ -87,6 +87,12 @@ public class AdminController {
         return Result.ok();
     }
 
+    @PutMapping("/vip-prices")
+    public Result<Void> updateVipPrices(@RequestBody Map<String, Map<String, String>> body) {
+        configService.saveVipPrices(body);
+        return Result.ok();
+    }
+
     @GetMapping("/version")
     public Result<Map<String, Object>> version() {
         return Result.ok(configService.versionInfo());

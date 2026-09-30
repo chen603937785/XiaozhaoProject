@@ -1,0 +1,14 @@
+/* 保持桌面端视觉风格，只处理网页视口的布局差异。 */
+html, body, #app { width: 100%; min-height: 100%; margin: 0; }
+#app { height: 100dvh; }
+@media (max-width: 900px) {
+  .body { min-width: 0; }
+  .sidebar { width: 64px; flex: 0 0 64px; padding: 16px 10px; }
+  .sidebar .brand { padding: 12px 0; justify-content: center; }
+  .sidebar .brand-info, .sidebar .menu-label, .sidebar .account-info,
+  .sidebar .menu-badge, .sidebar .menu-update-badge, .sidebar .collapse-btn { display: none; }
+  .sidebar .menu-item, .sidebar .account-card { justify-content: center; padding: 14px 0; }
+  .content { min-width: 0; }
+  .tabs { padding: 0 8px; }
+  .scroll { padding: 12px; }
+}

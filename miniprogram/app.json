@@ -1,31 +1,37 @@
 {
   "pages": [
+    "pages/workbench/workbench",
     "pages/index/index",
     "pages/company/company",
     "pages/favorites/favorites",
     "pages/detail/detail",
     "pages/my/my",
+    "pages/member/member",
+    "pages/calendar/calendar",
     "pages/preference/preference"
   ],
   "window": {
-    "navigationBarTitleText": "校招岗位",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#f5fcfb",
+    "navigationBarTitleText": "小麦说职位",
+    "navigationBarBackgroundColor": "#3286ee",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3f7fc",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#324263",
+    "selectedColor": "#3286ee",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
+      { "pagePath": "pages/workbench/workbench", "text": "工作台", "iconPath": "icons/workbench.png", "selectedIconPath": "icons/workbench-active.png" },
       {
         "pagePath": "pages/index/index",
-        "text": "岗位",
+        "text": "岗位库",
         "iconPath": "icons/job.png",
         "selectedIconPath": "icons/job-active.png"
       },
+      { "pagePath": "pages/favorites/favorites", "text": "关注岗位", "iconPath": "icons/follow.png", "selectedIconPath": "icons/follow-active.png" },
+      { "pagePath": "pages/calendar/calendar", "text": "待办日历", "iconPath": "icons/calendar.png", "selectedIconPath": "icons/calendar-active.png" },
       {
         "pagePath": "pages/my/my",
         "text": "我的",

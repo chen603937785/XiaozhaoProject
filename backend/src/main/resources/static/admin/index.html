@@ -195,13 +195,13 @@
           <div style="flex:1;min-width:380px;">
             <h3 style="font-size:15px;margin:16px 0 10px;color:#333;">macOS 版本</h3>
             <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">版本号</label><input id="macVersion" placeholder="如 0.2.0" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"></div>
-            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="macUrl" placeholder="如 app_0.2.0_universal.dmg" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('mac')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传安装包</button></div></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="macUrl" placeholder="如 app_0.2.0_universal.dmg" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('mac')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传客户端</button></div></div>
             <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">更新说明（每行一条）</label><textarea id="macNote" rows="4" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:14px;box-sizing:border-box;"></textarea></div>
           </div>
           <div style="flex:1;min-width:380px;">
             <h3 style="font-size:15px;margin:16px 0 10px;color:#333;">Windows 版本</h3>
             <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">版本号</label><input id="winVersion" placeholder="如 0.2.0" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"></div>
-            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="winUrl" placeholder="如 app_0.2.0_x64.msi" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('win')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传安装包</button></div></div>
+            <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下载文件名</label><div style="display:flex;gap:8px;"><input id="winUrl" placeholder="如 app_0.2.0_x64.msi" style="flex:1;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;font-size:14px;box-sizing:border-box;"><button onclick="uploadFile('win')" style="height:38px;padding:0 16px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;">上传客户端</button></div></div>
             <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">更新说明（每行一条）</label><textarea id="winNote" rows="4" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:14px;box-sizing:border-box;"></textarea></div>
           </div>
         </div>
@@ -227,6 +227,18 @@
               <button onclick="uploadCustomerQr()" style="height:36px;padding:0 20px;background:#3286ee;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">上传二维码图片</button>
             </div>
           </div>
+        </div>
+
+        <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:12px;padding:20px;margin:0 0 20px;">
+          <h3 style="font-size:15px;margin-bottom:6px;">会员定价</h3>
+          <div style="color:#999;font-size:13px;margin-bottom:14px;">原价会以划线展示，限时价是用户实际看到的突出价格。留空原价则不显示划线价。价格保存后，手机网页、电脑网页和客户端都会读取。</div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:16px;">
+            <div><div style="font-weight:700;margin-bottom:8px;">月卡 · 30天</div><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">原价</label><input id="vipMonthOriginal" inputmode="decimal" placeholder="如 19.9" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;margin-bottom:8px;box-sizing:border-box;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">限时价</label><input id="vipMonthSale" inputmode="decimal" placeholder="如 9.9" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;box-sizing:border-box;"></div>
+            <div><div style="font-weight:700;margin-bottom:8px;">季卡 · 90天</div><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">原价</label><input id="vipQuarterOriginal" inputmode="decimal" placeholder="如 49.9" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;margin-bottom:8px;box-sizing:border-box;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">限时价</label><input id="vipQuarterSale" inputmode="decimal" placeholder="如 25.9" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;box-sizing:border-box;"></div>
+            <div><div style="font-weight:700;margin-bottom:8px;">年卡 · 365天</div><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">原价</label><input id="vipYearOriginal" inputmode="decimal" placeholder="如 168" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;margin-bottom:8px;box-sizing:border-box;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">限时价</label><input id="vipYearSale" inputmode="decimal" placeholder="如 88" style="width:100%;height:38px;border:1px solid #ddd;border-radius:8px;padding:0 12px;box-sizing:border-box;"></div>
+          </div>
+          <button onclick="saveVipPrices()" style="height:38px;margin-top:14px;padding:0 22px;background:#07c160;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">保存会员定价</button>
+          <div id="vipPriceMsg" style="font-size:13px;color:#07c160;margin-top:8px;"></div>
         </div>
 
         <div style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap;align-items:center;">
@@ -314,7 +326,7 @@ function switchTab(tab) {
   if (tab === 'jobs') loadJobs(1);
   if (tab === 'settings') loadConfig();
   if (tab === 'version') loadVersion();
-  if (tab === 'redeem') { loadRedeemCodes(1); loadRedeemRecords(1); loadCustomerQr(); }
+  if (tab === 'redeem') { loadRedeemCodes(1); loadRedeemRecords(1); loadCustomerQr(); loadConfig(); }
 }
 
 function loadStats() {
@@ -448,6 +460,37 @@ function loadConfig() {
     if (res.code !== 200) return;
     document.getElementById('cfgRewardAd').checked = !!res.data.reward_ad_enabled;
     document.getElementById('cfgBindPhone').checked = !!res.data.bind_phone_enabled;
+    const prices = res.data.vipPrices || [];
+    const byKey = {};
+    prices.forEach(item => { byKey[item.key] = item; });
+    const fill = (key, originalId, saleId) => {
+      const item = byKey[key] || {};
+      document.getElementById(originalId).value = item.original || '';
+      document.getElementById(saleId).value = item.sale || '';
+    };
+    fill('month', 'vipMonthOriginal', 'vipMonthSale');
+    fill('quarter', 'vipQuarterOriginal', 'vipQuarterSale');
+    fill('year', 'vipYearOriginal', 'vipYearSale');
+  });
+}
+
+function saveVipPrices() {
+  const price = id => document.getElementById(id).value.trim();
+  const body = {
+    month: { original: price('vipMonthOriginal'), sale: price('vipMonthSale') },
+    quarter: { original: price('vipQuarterOriginal'), sale: price('vipQuarterSale') },
+    year: { original: price('vipYearOriginal'), sale: price('vipYearSale') }
+  };
+  api('/admin/vip-prices', 'PUT', JSON.stringify(body)).then(res => {
+    const el = document.getElementById('vipPriceMsg');
+    if (res.code === 200) {
+      el.style.color = '#07c160';
+      el.textContent = '会员定价已保存';
+      loadConfig();
+    } else {
+      el.style.color = '#e35d5d';
+      el.textContent = res.message || '保存失败';
+    }
   });
 }
 
@@ -475,7 +518,7 @@ function loadVersion() {
   });
 }
 
-function saveVersion() {
+function saveVersion(autoBind, platformLabel, filename) {
   const body = {
     mac: {
       version: document.getElementById('macVersion').value.trim(),
@@ -489,8 +532,8 @@ function saveVersion() {
     }
   };
   api('/admin/version', 'POST', JSON.stringify(body)).then(res => {
-    if (res.code === 200) alert('发布成功');
-    else alert(res.message || '发布失败');
+    if (res.code === 200) alert(autoBind ? (platformLabel + ' 客户端已上传，下载地址已更新为 ' + filename) : '发布成功');
+    else alert((autoBind ? '文件已上传，但下载地址保存失败：' : '') + (res.message || '发布失败'));
   });
 }
 
@@ -515,8 +558,9 @@ document.getElementById('uploadFileInput').addEventListener('change', function (
     if (res.code !== 200) { alert(res.message || '上传失败'); return; }
     if (uploadTarget === 'mac') document.getElementById('macUrl').value = res.data.filename;
     else document.getElementById('winUrl').value = res.data.filename;
-    alert('上传成功：' + res.data.filename);
+    saveVersion(true, uploadTarget === 'mac' ? 'Mac' : 'Windows', res.data.filename);
   }).catch(() => alert('上传失败'));
+  e.target.value = '';
 });
 
 function generateRedeem() {

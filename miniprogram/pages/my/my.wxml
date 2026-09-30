@@ -1,111 +1,23 @@
-<view class="page" style="padding-top: {{statusBarHeight}}px">
-
-  <!-- 顶部悬浮控件(右上角) -->
-  <view class="top-float" style="top: {{statusBarHeight + 8}}px">
-    <text class="float-icon">🔔</text>
-    <view class="float-line"></view>
-    <text class="float-icon">⚙️</text>
+<brand-nav section="我的" />
+<view class="career-page my-page">
+  <view class="my-top">
+    <view class="my-profile"><view class="profile-avatar {{loggedIn ? 'profile-avatar-on' : ''}}">{{avatarInitial}}</view><view class="profile-copy"><view class="profile-name">{{loggedIn ? (user.nickname || '同学') : '登录/注册'}}</view><view class="profile-account">{{loggedIn ? (user.phone || '账号已登录') : '登录体验更多功能哦~'}}</view></view><view wx:if="{{!loggedIn}}" class="profile-login" bindtap="openAuth">›</view></view>
+    <view class="profile-vip-line"><view class="profile-vip-dot {{user.isVip ? 'is-vip' : ''}}"></view><text>{{loggedIn ? vipText : '登录后查看会员状态'}}</text><text class="profile-chevron">›</text></view>
   </view>
-
-  <!-- 用户信息区 -->
-  <view class="user-section">
-    <view class="avatar-wrap">
-      <view class="avatar-grad">
-        <view class="avatar-inner">校</view>
-      </view>
-      <view class="avatar-dot"></view>
-    </view>
-    <view class="user-meta">
-      <view class="nickname">{{loggedIn ? '求职者' : '点击登录'}}</view>
-      <view class="badge" bindtap="onBindPhone">
-        <text class="badge-icon">✨</text>
-        <text class="badge-text">{{phone ? phone : '绑定手机号'}}</text>
-        <text class="badge-tip">i</text>
-      </view>
-    </view>
+  <view class="member-card {{user.isVip ? 'member-card-active' : ''}}" bindtap="buyMember">
+    <view class="member-decor decor-one"></view><view class="member-decor decor-two"></view><view class="member-crown">♛</view>
+    <view class="member-promo-title">{{loggedIn && user.isVip ? '您已是会员，已享受10+尊享特权' : '开通会员，解锁10+尊享特权'}}</view>
+    <view class="member-feature-row"><view><text class="feature-icon">▤</text><text>岗位每日更新</text></view><view><text class="feature-icon">⌘</text><text>多端互通</text></view><view><text class="feature-icon">☆</text><text>关注岗位</text></view><view><text class="feature-icon">✓</text><text>进度管理</text></view></view>
+    <view class="member-unlock" catchtap="buyMember">{{loggedIn && user.isVip ? '续费会员 ›' : '立即解锁 >'}}</view>
+    <view wx:if="{{loggedIn}}" class="redeem-inline"><input placeholder="输入兑换码" value="{{code}}" bindinput="input" data-field="code" /><button bindtap="redeem" disabled="{{busy}}">兑换</button></view><view wx:if="{{loggedIn}}" class="message member-message">{{message}}</view>
   </view>
-
-  <!-- 数据统计区 -->
-  <view class="stats">
-    <view class="stat">
-      <view class="stat-num">{{favCount}}</view>
-      <view class="stat-label">收藏</view>
-    </view>
-    <view class="stat-line"></view>
-    <view class="stat">
-      <view class="stat-num">{{matchCount}}</view>
-      <view class="stat-label">匹配岗位</view>
-    </view>
-    <view class="stat-line"></view>
-    <view class="stat">
-      <view class="stat-num">{{applyCount}}</view>
-      <view class="stat-label">投递</view>
-    </view>
-    <view class="stat-line"></view>
-    <view class="stat">
-      <view class="stat-num">{{viewCount}}</view>
-      <view class="stat-label">浏览</view>
-    </view>
+  <view class="my-menu">
+    <view class="menu-row" bindtap="goPreference"><view class="menu-icon menu-star">☆</view><view class="menu-label">与我匹配设置</view><text class="menu-arrow">›</text></view>
+    <view class="menu-row" bindtap="goPlans"><view class="menu-icon menu-follow">▣</view><view class="menu-label">关注岗位</view><text class="menu-arrow">›</text></view>
+    <view class="menu-row" bindtap="contact"><view class="menu-icon menu-contact">✦</view><view class="menu-label">联系我们</view><text class="menu-arrow">›</text></view>
+    <view wx:if="{{loggedIn}}" class="menu-row" bindtap="nickname"><view class="menu-icon menu-setting">✎</view><view class="menu-label">用户设置</view><text class="menu-arrow">›</text></view>
+    <view wx:if="{{loggedIn}}" class="menu-row" bindtap="logout"><view class="menu-icon menu-logout">⇥</view><view class="menu-label">退出登录</view><text class="menu-arrow">›</text></view>
   </view>
-
-  <!-- 第一张卡片: 我的服务(星球) -->
-  <view class="card">
-    <view class="card-head">
-      <text class="card-title">我的服务</text>
-      <text class="card-more">全部 ›</text>
-    </view>
-    <view class="planet-grid">
-      <view class="planet-item" bindtap="goFavorites">
-        <view class="planet planet-blue">🗂</view>
-        <view class="planet-base base-blue">
-          <view class="pb-main">我的收藏</view>
-          <view class="pb-sub">{{favCount}} 个岗位</view>
-        </view>
-      </view>
-      <view class="planet-item" bindtap="goPreference">
-        <view class="planet planet-purple">🎯</view>
-        <view class="planet-base base-purple">
-          <view class="pb-main">岗位偏好</view>
-          <view class="pb-sub">设置匹配</view>
-        </view>
-      </view>
-      <view class="planet-item" bindtap="onBindPhone">
-        <view class="planet planet-pink">📱</view>
-        <view class="planet-base base-pink">
-          <view class="pb-main">绑定手机</view>
-          <view class="pb-sub">{{phone ? '已绑定' : '未绑定'}}</view>
-        </view>
-      </view>
-      <view class="planet-item" bindtap="goFavorites">
-        <view class="planet planet-orange">🌟</view>
-        <view class="planet-base base-cream">
-          <view class="pb-main">浏览记录</view>
-          <view class="pb-sub">近期查看</view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 第二张卡片: 切换 + 内容预览 -->
-  <view class="card">
-    <view class="tab-bar">
-      <view class="tab {{tab === 'fav' ? 'active' : ''}}" bindtap="onTab" data-tab="fav">收藏</view>
-      <view class="tab {{tab === 'browse' ? 'active' : ''}}" bindtap="onTab" data-tab="browse">浏览</view>
-    </view>
-    <view class="inner-card">
-      <view class="inner-title">{{innerTitle}}</view>
-      <view class="thumb-row">
-        <view class="thumb thumb-purple">🎯</view>
-        <view class="thumb thumb-pink">💼</view>
-        <view class="thumb thumb-orange">📋</view>
-        <view class="thumb thumb-blue">🌟</view>
-      </view>
-      <view class="inner-footer">
-        <text class="inner-left">{{innerCount}}</text>
-        <text class="inner-right">{{innerTime}}</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="page-tail"></view>
+  <view wx:if="{{showAuth}}" class="auth-mask" bindtap="closeAuth"></view><view wx:if="{{showAuth}}" class="auth-sheet"><view class="auth-sheet-head"><view><view class="auth-title">{{authMode === 'login' ? '登录小麦说职位' : '注册小麦说职位'}}</view><view class="auth-subtitle">与电脑端、客户端使用同一账号</view></view><text class="auth-close" bindtap="closeAuth">×</text></view><view class="auth-tabs"><view class="auth-tab {{authMode === 'login' ? 'active' : ''}}" bindtap="mode" data-mode="login">登录</view><view class="auth-tab {{authMode === 'register' ? 'active' : ''}}" bindtap="mode" data-mode="register">注册</view></view><input class="field auth-field" type="number" maxlength="11" value="{{phone}}" placeholder="请输入手机号" bindinput="input" data-field="phone" /><input class="field auth-field" password value="{{password}}" placeholder="请输入密码（至少6位）" bindinput="input" data-field="password" /><button class="primary auth-submit" loading="{{busy}}" disabled="{{busy}}" bindtap="submit">{{authMode === 'login' ? '登录' : '注册并登录'}}</button><view class="message">{{message}}</view></view>
+  <view wx:if="{{showContact}}" class="contact-mask" bindtap="closeContact"></view><view wx:if="{{showContact}}" class="contact-dialog"><view class="contact-title">联系我们</view><view class="contact-subtitle">扫码添加客服微信</view><image wx:if="{{contactQr}}" class="contact-qr" src="{{contactQr}}" mode="aspectFit"></image><view wx:else class="contact-empty">暂未配置客服二维码</view><view class="contact-close" bindtap="closeContact">知道了</view></view>
 </view>

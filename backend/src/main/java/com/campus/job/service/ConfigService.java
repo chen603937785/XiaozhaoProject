@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +29,11 @@ public class ConfigService {
     public static final String KEY_CUSTOMER_QR = "customer_qr_image";
 
     private static final String[] ALL_KEYS = {KEY_REWARD_AD, KEY_BIND_PHONE};
+    private static final String[][] VIP_PLANS = {
+            {"month", "月卡", "30", "19.9", "9.9"},
+            {"quarter", "季卡", "90", "49.9", "25.9"},
+            {"year", "年卡", "365", "168", "88"}
+    };
 
     public String getValue(String key) {
         Config c = configMapper.selectOne(new QueryWrapper<Config>().eq("cfg_key", key));
@@ -44,6 +51,7 @@ public class ConfigService {
         map.put("rewardAdEnabled", isEnabled(KEY_REWARD_AD));
         map.put("bindPhoneEnabled", isEnabled(KEY_BIND_PHONE));
         map.put("customerQrImage", getValue(KEY_CUSTOMER_QR));
+        map.put("vipPrices", vipPrices());
         return map;
     }
 
@@ -63,7 +71,47 @@ public class ConfigService {
         for (String key : ALL_KEYS) {
             map.put(key, isEnabled(key));
         }
+        map.put("vipPrices", vipPrices());
         return map;
+    }
+
+    /** 会员价格：未配置时使用默认原价和限时价。原价留空表示不展示划线价。 */
+    public List<Map<String, Object>> vipPrices() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (String[] plan : VIP_PLANS) {
+            String original = getValue("vip_" + plan[0] + "_original");
+            String sale = getValue("vip_" + plan[0] + "_sale");
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("key", plan[0]);
+            item.put("name", plan[1]);
+            item.put("days", Integer.parseInt(plan[2]));
+            item.put("original", original == null ? plan[3] : cleanPrice(original));
+            item.put("sale", sale == null || cleanPrice(sale).isEmpty() ? plan[4] : cleanPrice(sale));
+            result.add(item);
+        }
+        return result;
+    }
+
+    /** 保存会员原价与限时价。body: { month: {original, sale}, quarter: {...}, year: {...} } */
+    public void saveVipPrices(Map<String, Map<String, String>> body) {
+        if (body == null) return;
+        for (String[] plan : VIP_PLANS) {
+            Map<String, String> info = body.get(plan[0]);
+            if (info == null) continue;
+            if (info.containsKey("original")) {
+                setValue("vip_" + plan[0] + "_original", cleanPrice(info.get("original")));
+            }
+            if (info.containsKey("sale")) {
+                String sale = cleanPrice(info.get("sale"));
+                if (!sale.isEmpty()) setValue("vip_" + plan[0] + "_sale", sale);
+            }
+        }
+    }
+
+    private String cleanPrice(String raw) {
+        if (raw == null) return "";
+        String value = raw.trim();
+        return value.matches("\\d{1,6}(\\.\\d{1,2})?") ? value : "";
     }
 
     /** 更新配置 */

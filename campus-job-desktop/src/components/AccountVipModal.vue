@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import taobaoShopQr from '../assets/taobao-shop-qr.jpg';
-import { updateNickname, redeemCode } from '../api';
+import { updateNickname, redeemCode, getPublicConfig } from '../api';
 
 const props = defineProps({
   phone: String,
@@ -17,6 +17,20 @@ const redeemMsg = ref('');
 const showShop = ref(false);
 const copyMessage = ref('');
 const TAOBAO_CODE = '【淘宝】https://e.tb.cn/h.8wgjIq2YZ34lcLQ?tk=jbxiTlHwFYN MF278 ';
+
+const prices = ref([
+  { key: 'month', name: '月卡', days: 30, original: '19.9', sale: '9.9' },
+  { key: 'quarter', name: '季卡', days: 90, original: '49.9', sale: '25.9' },
+  { key: 'year', name: '年卡', days: 365, original: '168', sale: '88' }
+]);
+const tierClass = { month: 'tier-month', quarter: 'tier-quarter', year: 'tier-year' };
+
+onMounted(async () => {
+  try {
+    const cfg = await getPublicConfig();
+    if (Array.isArray(cfg?.vipPrices) && cfg.vipPrices.length) prices.value = cfg.vipPrices;
+  } catch (e) {}
+});
 
 const vipExpiring = computed(() => {
   if (!props.isVip || !props.vipExpire) return false;
@@ -117,22 +131,21 @@ async function saveNickname() {
           <span>兑换后立即生效</span>
         </div>
         <div class="membership-prices">
-          <article class="tier-month"><strong>月卡</strong><b>¥9.9</b><small>30 天</small></article>
-          <article class="tier-quarter"><strong>季卡</strong><b>¥25.9</b><small>90 天</small></article>
-          <article class="tier-year"><strong>年卡</strong><b>¥88</b><small>365 天</small></article>
+          <article v-for="item in prices" :key="item.key" :class="tierClass[item.key]">
+            <strong>{{ item.name }}</strong>
+            <del v-if="item.original && item.original !== item.sale">¥{{ item.original }}</del>
+            <b>¥{{ item.sale }}</b>
+            <small>限时 · {{ item.days }} 天</small>
+          </article>
         </div>
-        <div class="membership-table-wrap">
-          <table class="membership-table">
-            <thead><tr><th>功能</th><th>非会员</th><th>会员</th></tr></thead>
-            <tbody>
-              <tr><td>岗位浏览与筛选</td><td>首页可看</td><td>全部可用</td></tr>
-              <tr><td>翻页查看更多岗位</td><td>不可用</td><td>可用</td></tr>
-              <tr><td>关注岗位与进度管理</td><td>不可用</td><td>可用</td></tr>
-              <tr><td>网申公告与投递直达</td><td>不可用</td><td>可用</td></tr>
-              <tr><td>求职计划与待办管理</td><td>不可用</td><td>可用</td></tr>
-              <tr><td>简历资料与自动填写</td><td>不可用</td><td>客户端可用</td></tr>
-            </tbody>
-          </table>
+        <div class="benefit-box">
+          <h3>会员权益介绍</h3>
+          <ol>
+            <li>岗位每日更新（全网最全）</li>
+            <li>手机、电脑、客户端多端互通共用</li>
+            <li>支持关注岗位与进度管理</li>
+            <li><em>赠送：</em>快速填写网申插件（别再手填了）</li>
+          </ol>
         </div>
       </section>
 
@@ -398,15 +411,13 @@ async function saveNickname() {
 .membership-prices .tier-quarter { border-color: #efd089; background: linear-gradient(180deg, #fffaf0, #ffe8b8); }
 .membership-prices .tier-year { border-color: #e2b15a; background: linear-gradient(180deg, #fff4d4, #f6c96a); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
 .membership-prices strong { color: #18385f; font-size: 13px; }
+.membership-prices del { color: #9aabbb; font-size: 12px; text-decoration: line-through; }
 .membership-prices b { color: #df5b45; font-size: 20px; line-height: 1.1; }
 .membership-prices small { color: #7d92a8; font-size: 12px; }
-.membership-table-wrap { overflow-x: auto; border: 1px solid #e3ecf6; border-radius: 12px; }
-.membership-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.membership-table th, .membership-table td { padding: 8px 7px; border-bottom: 1px solid #edf2f7; text-align: center; white-space: nowrap; }
-.membership-table th:first-child, .membership-table td:first-child { text-align: left; }
-.membership-table th { color: #6d8298; background: #f7fafd; font-weight: 600; }
-.membership-table td:last-child { color: #2f6f86; font-weight: 700; }
-.membership-table tr:last-child td { border-bottom: 0; }
+.benefit-box { padding: 12px 14px; border: 1px solid #e3ecf6; border-radius: 12px; background: #f8fbff; }
+.benefit-box h3 { margin: 0 0 8px; color: #18385f; font-size: 15px; }
+.benefit-box ol { margin: 0; padding-left: 1.4em; color: #31465f; line-height: 1.8; }
+.benefit-box em { color: #e23d3d; font-style: normal; font-weight: 800; }
 .code-title { font-size: 15px; font-weight: 600; color: #18385f; margin-bottom: 12px; }
 .code-btn {
   flex: none;

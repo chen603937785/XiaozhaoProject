@@ -179,6 +179,11 @@ public class JobService {
     public Map<String, Object> meta() {
         Map<String, Object> meta = new HashMap<>();
         meta.put("industries", INDUSTRIES);
+        meta.put("totalJobs", jobMapper.selectCount(new QueryWrapper<Job>().eq("status", 1)));
+        meta.put("companyCount", jobMapper.selectObjs(new QueryWrapper<Job>()
+                .select("COUNT(DISTINCT NULLIF(TRIM(company_name), ''))").eq("status", 1)).get(0));
+        meta.put("last7DaysCount", jobMapper.selectCount(new QueryWrapper<Job>().eq("status", 1)
+                .ge("publish_date", LocalDate.now().minusDays(6)).le("publish_date", LocalDate.now())));
         meta.put("recruitTypes", RECRUIT_TYPES);
         meta.put("natures", NATURES);
         meta.put("educations", EDUCATIONS);

@@ -1,4 +1,10 @@
 {
-  "navigationStyle": "custom",
-  "usingComponents": {}
+  "navigationBarTitleText": "小麦说职位",
+  "navigationBarBackgroundColor": "#3286ee",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f3f7fc",
+  "usingComponents": {
+    "brand-nav": "/components/brand-nav/brand-nav"
+  },
+  "navigationStyle": "custom"
 }

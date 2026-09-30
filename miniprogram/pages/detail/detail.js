@@ -1,5 +1,6 @@
 const { get, post, del } = require('../../utils/request');
 const { decorate } = require('../../utils/job');
+const { follow, requireLogin } = require('../../utils/career');
 
 let rewardedAd = null;
 
@@ -54,23 +55,23 @@ Page({
   },
 
   loadFavoriteStatus(id) {
-    get('/api/favorites/status/' + id).then(data => {
-      this.setData({ favorite: data.favorite });
+    if (!wx.getStorageSync('token')) return;
+    get('/api/job-status/followed/' + id).then(data => {
+      this.setData({ favorite: data.followed });
     }).catch(() => {});
   },
 
-  toggleFavorite() {
+  async toggleFavorite() {
+    if (!requireLogin()) return;
     const { id, favorite } = this.data;
     if (favorite) {
-      del('/api/favorites/' + id).then(() => {
+      del('/api/job-status/follow/' + id).then(() => {
         this.setData({ favorite: false });
-        wx.showToast({ title: '已取消收藏', icon: 'none' });
+        wx.showToast({ title: '已取消关注', icon: 'none' });
       }).catch(err => wx.showToast({ title: err.message, icon: 'none' }));
     } else {
-      post('/api/favorites', { jobId: Number(id) }).then(() => {
-        this.setData({ favorite: true });
-        wx.showToast({ title: '已收藏', icon: 'none' });
-      }).catch(err => wx.showToast({ title: err.message, icon: 'none' }));
+      try { if (await follow(id)) this.setData({ favorite: true }); }
+      catch (err) { wx.showToast({ title: err.message, icon: 'none' }); }
     }
   },
 

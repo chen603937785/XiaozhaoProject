@@ -1,6 +1,6 @@
 # 校招求职工具
 
-面向 27 届校招 / 实习的岗位筛选与求职跟进工具。岗位数据来自网申汇总表（清洗后约 5772 条），支持微信小程序和 Tauri 桌面端，桌面端可内置打开网申页并半自动填表。
+面向 27 届校招 / 实习的岗位筛选与求职跟进工具。岗位数据来自网申汇总表（清洗后约 5772 条），支持微信小程序、Tauri 桌面端和 Vue 网页端；桌面端可内置打开网申页并半自动填表。
 
 线上 API：https://my88ai.com
 
@@ -19,6 +19,7 @@
 ├── backend/                   # Spring Boot 后端 + 管理后台
 ├── miniprogram/               # 微信小程序
 ├── campus-job-desktop/        # Tauri 2 + Vue 3 桌面端
+├── campus-job-web/            # Vue 3 网页端（复用桌面端业务组件）
 └── .github/workflows/         # macOS / Windows 桌面端打包
 ```
 
@@ -27,21 +28,23 @@
 - **后端**：Spring Boot 2.7、MyBatis-Plus 3.5、MySQL 8、Hutool（JWT / HTTP）
 - **小程序**：微信小程序原生
 - **桌面端**：Tauri 2、Vue 3、Vite；macOS 内嵌 WKWebView，Windows 用独立 WebView2 窗口
+- **网页端**：Vue 3、Vite，与桌面端共用业务页面，网申链接在浏览器新页签打开
 - **数据清洗**：Python（openpyxl）
 
 ## 功能概览
 
-| 能力 | 小程序 | 桌面端 |
-|---|---|---|
-| 岗位筛选 / 搜索 / 分页 | ✓ | ✓ |
-| 与我匹配（偏好条件） | ✓ | ✓ |
-| 关注岗位 + 状态跟进 | 收藏 | ✓ 完整状态机 |
-| 求职计划 | | ✓ |
-| 待办日历 | | ✓ |
-| 简历资料库 + 多份简历 | 简单 JSON | ✓ 分节维护 |
-| 内置打开网申/投递页 + 自动填写 | | ✓ |
-| 会员 / 兑换码 | ✓ | ✓ |
-| 管理后台 | 后端静态页 /admin | |
+| 能力 | 小程序 | 桌面端 | 网页端 |
+|---|---|---|---|
+| 岗位筛选 / 搜索 / 分页 | ✓ | ✓ | ✓ |
+| 与我匹配（偏好条件） | ✓ | ✓ | ✓ |
+| 关注岗位 + 状态跟进 | 收藏 | ✓ 完整状态机 | ✓ |
+| 求职计划 | | ✓ | ✓ |
+| 待办日历 | | ✓ | ✓ |
+| 简历资料库 + 多份简历 | 简单 JSON | ✓ 分节维护 | ✓ |
+| 打开网申/投递页 | | 内置子 WebView | 浏览器新页签 |
+| 自动填写 | | ✓ | 待浏览器扩展 |
+| 会员 / 兑换码 | ✓ | ✓ | ✓ |
+| 管理后台 | 后端静态页 /admin | | 独立沿用 /admin |
 
 ---
 
@@ -155,6 +158,17 @@ npx tauri build
 ---
 
 ## 五、上线注意
+
+网页版开发与构建见 [campus-job-web/README.md](campus-job-web/README.md)：
+
+```bash
+cd campus-job-web
+npm ci
+npm run dev       # http://127.0.0.1:1421/
+npm run build     # dist/，部署在 https://my88ai.com/ 根路径
+```
+
+网页端复用桌面端 Vue 业务组件，但不包含 Tauri 原生 WebView。网申链接在浏览器新页签打开；自动填写需要未来单独开发的 Chrome/Edge 扩展。网页端部署在 `https://my88ai.com/` 根路径；`/admin/`、`/api/`、`/downloads/` 保持独立路由。
 
 1. 后端需 HTTPS 域名 + ICP 备案；小程序配置 request 合法域名
 2. application.yml 中 mock-openid=false，填入真实微信 appid/secret，jwt.secret 换成强密钥

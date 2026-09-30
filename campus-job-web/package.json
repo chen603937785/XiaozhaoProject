@@ -1,0 +1,19 @@
+{
+  "name": "campus-job-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.6.2",
+    "vite": "^4.5.3"
+  },
+  "engines": { "node": "^16.0.0 || ^18.0.0 || >=20.0.0" }
+}

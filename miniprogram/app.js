@@ -1,4 +1,3 @@
-const { login } = require('./utils/auth');
 const { BASE_URL } = require('./utils/config');
 
 App({
@@ -11,7 +10,11 @@ App({
   },
 
   onLaunch() {
-    this.loginSilently();
+    // 旧版本 token 来自微信独立账号，升级后需重新登录客户端账号，避免显示错用户的数据。
+    if (wx.getStorageSync('login_provider') !== 'password') {
+      ['token', 'userId', 'phone'].forEach(key => wx.removeStorageSync(key));
+    }
+    this.syncGlobal();
     this.loadConfig();
   },
 
@@ -29,24 +32,11 @@ App({
     });
   },
 
-  loginSilently() {
-    const token = wx.getStorageSync('token');
-    if (token) {
-      this.syncGlobal();
-      return;
-    }
-    login().then((d) => {
-      this.syncGlobal();
-    }).catch(() => {
-      // 静默失败, 后续操作再触发
-    });
-  },
-
   // 同步全局登录状态
   syncGlobal() {
     this.globalData.token = wx.getStorageSync('token') || '';
     this.globalData.userId = wx.getStorageSync('userId') || null;
     this.globalData.phone = wx.getStorageSync('phone') || '';
-    this.globalData.needBindPhone = !this.globalData.phone;
+    this.globalData.needBindPhone = !!this.globalData.token && !this.globalData.phone;
   }
 });

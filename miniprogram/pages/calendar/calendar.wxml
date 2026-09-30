@@ -1,0 +1,41 @@
+<brand-nav section="日历" />
+<view class="career-page calendar-page">
+  <view class="calendar-hero"><view><view class="calendar-kicker">MY SCHEDULE</view><view class="hero-title">把每个机会，记在日历里</view><view class="hero-sub">投递 · 笔试 · 面试，与客户端同步</view></view><view class="calendar-emblem">▦</view></view>
+  <view wx:if="{{!loggedIn}}" class="card login-card"><view class="muted">登录后查看你的专属求职日程</view><button class="primary" bindtap="login">登录查看待办</button></view>
+  <view class="calendar-card">
+    <view class="month-head"><view class="month-title">{{month}}</view><view class="month-controls"><button bindtap="today" class="today-btn">今天</button><button bindtap="change" data-delta="-1" class="month-arrow">‹</button><button bindtap="change" data-delta="1" class="month-arrow">›</button></view></view>
+    <view class="calendar-grid">
+      <view wx:for="{{weeks}}" wx:key="*this" class="weekday">{{item}}</view>
+      <view wx:for="{{cells}}" wx:key="key" class="day {{selected===item.key ? 'chosen' : ''}} {{item.today?'today':''}} {{item.blank?'blank':''}}" bindtap="day" data-key="{{item.key}}"><text>{{item.day}}</text><view wx:if="{{item.count}}" class="dot"></view></view>
+    </view>
+    <view class="calendar-legend"><view class="legend-dot"></view><text>有未完成待办</text><text class="legend-hint">点击日期查看安排</text></view>
+  </view>
+  <block wx:if="{{loggedIn}}">
+    <view class="agenda-head"><view><view class="agenda-title">{{selected}}</view><view class="agenda-caption">当日及未设日期待办 · {{visible.length}} 项</view></view><button class="new-todo-btn" bindtap="newTodo">＋ 新建待办</button></view>
+    <view wx:for="{{visible}}" wx:key="id" class="todo-card {{item.status==='COMPLETED'?'todo-completed':''}}">
+      <view class="todo-card-head"><view class="todo-mark {{item.status==='COMPLETED'?'todo-mark-done':''}}">{{item.status==='COMPLETED'?'✓':'◷'}}</view><view class="todo-copy"><view class="task-title {{item.status==='COMPLETED'?'done':''}}">{{item.title}}</view><view class="todo-meta">{{item.time || '未设日期'}} · {{item.planName || '个人待办'}}</view></view></view>
+      <view wx:if="{{item.description}}" class="todo-description">{{item.description==='EXPECTED_START'?'岗位进度提醒':item.description}}</view>
+      <view class="todo-actions"><text class="todo-state">{{item.status==='COMPLETED'?'已完成':'待处理'}}</text><button class="todo-delete" bindtap="remove" data-id="{{item.id}}">删除</button><button class="todo-toggle" bindtap="toggle" data-id="{{item.id}}" data-status="{{item.status}}">{{item.status==='COMPLETED'?'恢复待办':'标记完成'}}</button></view>
+    </view>
+    <view wx:if="{{!visible.length && !error}}" class="calendar-empty"><view class="empty-calendar">✓</view><view>这一天，还没有安排</view><text>把下一次投递或面试记下来吧</text></view>
+  </block>
+  <view wx:if="{{!showForm}}" class="message">{{error}}</view>
+</view>
+<view wx:if="{{showForm}}" class="form-mask" bindtap="close" catchtouchmove="stopBubble"></view>
+<view wx:if="{{showForm}}" class="todo-form" catchtap="stopBubble">
+  <view class="form-heading"><view><view class="form-title">新建待办</view><view class="form-subtitle">记下重要的一步，让求职更有条理</view></view><button class="form-close" bindtap="close" disabled="{{saving}}">×</button></view>
+  <scroll-view class="form-body" scroll-y>
+    <view class="field-label">待办名称 <text class="required">*</text></view>
+    <input class="todo-input" placeholder="例如：完成笔试 / 准备面试" value="{{title}}" bindinput="input" data-field="title" maxlength="100" adjust-position="{{true}}" cursor-spacing="100"/>
+    <view class="field-label">备注 <text class="optional">选填</text></view>
+    <input class="todo-input" placeholder="记下岗位、准备事项等" value="{{description}}" bindinput="input" data-field="description" maxlength="500" cursor-spacing="100"/>
+    <view class="form-date-row">
+      <view class="date-column"><view class="field-label">日期</view><picker mode="date" value="{{date}}" bindchange="input" data-field="date"><view class="todo-picker"><text>{{date}}</text><text>⌄</text></view></picker></view>
+      <view class="date-column"><view class="field-label">时间</view><picker mode="time" value="{{time}}" bindchange="input" data-field="time"><view class="todo-picker"><text>{{time}}</text><text>⌄</text></view></picker></view>
+    </view>
+    <view class="field-label">优先级</view><view class="priority-row"><button wx:for="{{priorities}}" wx:key="*this" class="priority-option {{priorityIndex==index?'priority-selected':''}}" data-index="{{index}}" bindtap="choosePriority">{{item}}</button></view>
+    <view class="field-label">关联求职计划</view><picker range="{{plans}}" range-key="planName" value="{{planIndex}}" bindchange="input" data-field="planIndex"><view class="todo-picker"><text class="plan-picker-text">{{plans[planIndex].planName || '不关联计划'}}</text><text>⌄</text></view></picker>
+    <view class="message">{{error}}</view>
+  </scroll-view>
+  <view class="form-footer"><button class="form-cancel" bindtap="close" disabled="{{saving}}">取消</button><button class="form-save" bindtap="save" loading="{{saving}}" disabled="{{saving}}">{{saving?'保存中':'保存待办'}}</button></view>
+</view>

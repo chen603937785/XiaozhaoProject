@@ -1,26 +1,27 @@
-<view class="page">
-  <view wx:if="{{jobs.length}}" class="job-list">
-    <view wx:for="{{jobs}}" wx:key="id" class="card job-card" bindtap="goDetail" data-id="{{item.id}}">
-      <view class="job-header">
-        <view class="job-company">{{item.companyName}}</view>
-        <view class="remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">取消收藏</view>
-      </view>
-      <view class="job-position">{{item.positionPreview}}</view>
-      <view class="job-tags">
-        <text wx:for="{{item.recruitTypeArr}}" wx:key="*this" class="tag tag-brand">{{item}}</text>
-        <text wx:for="{{item.industryArr}}" wx:key="*this" class="tag">{{item}}</text>
-        <text wx:for="{{item.cityArr}}" wx:key="*this" class="tag">{{item}}</text>
-      </view>
-      <view class="job-meta">
-        <text class="meta-item">{{item.companyNature}}</text>
-        <text class="meta-item">{{item.educationLabel}}</text>
-        <text class="meta-item">{{item.deadlineLabel}}</text>
-      </view>
+<brand-nav section="关注" />
+<view class="career-page favorites-page">
+  <view class="hero favorites-hero"><view><view class="hero-kicker">小麦说职位</view><view class="hero-title">关注岗位</view><view class="hero-sub">从意向到 Offer，每一步都清晰可见</view></view><view class="hero-icon">♡</view></view>
+  <view wx:if="{{!loggedIn}}" class="card"><view class="muted">登录后同步客户端关注的岗位</view><button class="primary" bindtap="login">去登录</button></view>
+  <block wx:else>
+    <picker range="{{plans}}" range-key="planName" value="{{planIndex}}" bindchange="plan"><view class="filter-card"><view><text class="filter-label">当前计划</text><text class="filter-value">{{plans[planIndex].planName || '全部计划'}}</text></view><text class="filter-arrow">⌄</text></view></picker>
+    <scroll-view scroll-x class="stage-scroll" show-scrollbar="{{false}}"><view class="stage-row"><button wx:for="{{stages}}" wx:key="key" class="chip {{stage === item.key ? 'selected' : ''}}" bindtap="stage" data-key="{{item.key}}">{{item.label}}</button></view></scroll-view>
+    <view class="results-line"><text>关注列表</text><text>当前 {{visible.length}} 个岗位</text></view>
+    <view wx:for="{{visible}}" wx:key="jobId" class="card favorite-card">
+      <view class="favorite-head" bindtap="detail" data-id="{{item.jobId}}"><view class="favorite-company"><view class="section-title">{{item.companyName || '企业名称待补充'}}</view><view class="favorite-position">{{item.position || '岗位信息待补充'}}</view></view><text class="detail-arrow">›</text></view>
+      <view class="favorite-status-line"><text class="stage-badge stage-{{item.mainStatus}}">{{item.label}}</text><text wx:if="{{item.subStatus}}" class="favorite-substatus">{{item.subStatus}}</text></view>
+      <view class="favorite-meta"><view><text class="meta-label">地点</text><text class="meta-value">{{item.cities || '地点待定'}}</text></view><view><text class="meta-label">计划</text><text class="meta-value">{{item.planName}}</text></view></view>
+      <view wx:if="{{item.time}}" class="reminder-line">◷ 提醒时间 {{item.time}}</view>
+      <view class="favorite-actions"><button class="action-btn action-primary" bindtap="update" data-id="{{item.jobId}}">更新进度</button><button class="action-btn" bindtap="expected" data-id="{{item.jobId}}">设置提醒</button><button class="action-btn" bindtap="move" data-id="{{item.jobId}}">调整计划</button><button class="action-btn action-danger" bindtap="remove" data-id="{{item.jobId}}">取消关注</button></view>
     </view>
+    <view wx:if="{{!visible.length && !loading && !error}}" class="empty-state follow-empty"><view class="empty-symbol">☆</view><view class="empty-heading">{{jobs.length ? '当前筛选下暂无岗位' : '把心仪的岗位收藏在这里'}}</view><view>{{jobs.length ? '试试切换计划或求职阶段' : '关注后，随时记录进度、设置提醒'}}</view></view><view wx:if="{{loading}}" class="follow-loading">正在同步关注岗位…</view><view class="message">{{error}}</view>
+  </block>
+  <view wx:if="{{showProgress}}" class="sheet-mask" bindtap="closeSheet"></view>
+  <view wx:if="{{showProgress}}" class="action-sheet">
+    <view class="sheet-title">更新岗位进度</view><view class="sheet-subtitle">选择当前阶段，记录每一次推进</view>
+    <view class="sheet-options"><view wx:for="{{progressOptions}}" wx:key="key" class="sheet-option {{progressStage === item.key ? 'active' : ''}}" bindtap="chooseProgress" data-key="{{item.key}}"><view class="sheet-dot" style="background:{{item.color}}"></view><text>{{item.label}}</text><text wx:if="{{progressStage === item.key}}" class="sheet-check">✓</text></view></view>
+    <view wx:if="{{progressSubOptions.length}}" class="sub-options"><view class="sub-title">细分状态</view><scroll-view scroll-x="{{true}}" class="sub-scroll"><view class="sub-row"><view wx:for="{{progressSubOptions}}" wx:key="*this" class="sub-chip {{progressSubStatus === item ? 'active' : ''}}" bindtap="chooseSubProgress" data-value="{{item}}">{{item}}</view></view></scroll-view></view>
+    <view class="sheet-buttons"><button class="sheet-cancel" bindtap="closeSheet">取消</button><button class="sheet-confirm" bindtap="saveProgress">保存进度</button></view>
   </view>
-
-  <view wx:elif="{{!loading}}" class="empty">
-    <text class="empty-icon">☆</text>
-    <text>还没有收藏任何岗位</text>
-  </view>
+  <view wx:if="{{showReminder}}" class="sheet-mask" bindtap="closeSheet"></view>
+  <view wx:if="{{showReminder}}" class="action-sheet reminder-sheet"><view class="sheet-title">设置提醒时间</view><view class="sheet-subtitle">在合适的时间提醒你跟进这个岗位</view><picker mode="date" value="{{reminderDate}}" start="{{today}}" bindchange="changeReminderDate"><view class="picker-field"><text>日期</text><text>{{reminderDate}}</text><text>›</text></view></picker><picker mode="time" value="{{reminderTime}}" bindchange="changeReminderTime"><view class="picker-field"><text>时间</text><text>{{reminderTime}}</text><text>›</text></view></picker><view class="sheet-buttons"><button class="sheet-cancel" bindtap="clearReminder">清除提醒</button><button class="sheet-confirm" bindtap="saveReminder">保存提醒</button></view></view>
 </view>

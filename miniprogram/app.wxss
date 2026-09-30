@@ -1,17 +1,18 @@
 /* 全局样式 */
 page {
-  background: #f5fcfb;
+  background: #f3f7fc;
   font-size: 28rpx;
   color: #333;
-  --brand: #324263;
-  --brand-light: #b1ffec;
-  --text-main: #333;
+  --brand: #3286ee;
+  --brand-light: #eaf2ff;
+  --champagne: #e7b86a;
+  --text-main: #090909;
   --text-sub: #999;
 }
 
 /* 通用按钮 */
 .btn-primary {
-  background: linear-gradient(135deg, #324263, #b1ffec);
+  background: linear-gradient(135deg, #2f80ed, #5db4f5);
   color: #fff;
   border-radius: 8rpx;
   text-align: center;
@@ -30,18 +31,20 @@ page {
 }
 
 .tag-brand {
-  background: linear-gradient(135deg, #b1ffec, #9cecdb);
-  color: #324263;
+  background: #eaf2ff;
+  color: #3286ee;
 }
 
 /* 卡片 */
 .card {
   background: #fff;
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
+
+.career-page{padding:24rpx;color:#18385f}.hero{padding:28rpx;border-radius:28rpx;background:linear-gradient(135deg,#eaf2ff,#f7faff);margin-bottom:24rpx}.hero-title{font-size:42rpx;font-weight:700}.hero-sub,.muted{color:#7d92a8;font-size:24rpx;line-height:1.8}.section-title{font-size:30rpx;font-weight:700;margin-bottom:18rpx}.row{display:flex;align-items:center;gap:16rpx;flex-wrap:wrap}.grow{flex:1;min-width:0}.field{height:80rpx;box-sizing:border-box;background:#f5f8fc;border:1rpx solid #e3ecf6;border-radius:16rpx;padding:0 24rpx;margin:16rpx 0;color:#18385f;font-size:28rpx}.primary,.secondary,.chip{font-size:26rpx;border:0;border-radius:16rpx;margin:12rpx 0}.primary{background:linear-gradient(135deg,#2f80ed,#5db4f5);color:white}.secondary,.chip{background:#eef4fb;color:#3286ee}.compact{padding:0 24rpx;line-height:80rpx}.chip{padding:0 24rpx;line-height:64rpx}.selected{background:#3286ee;color:#fff}.message,.danger{color:#e23d3d;font-size:26rpx;line-height:1.6}.link{font-size:24rpx;color:#3286ee;font-weight:400;margin-left:16rpx}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16rpx}.stat-tile{padding:24rpx 12rpx;background:#eaf2ff;border-radius:20rpx;text-align:center}.stat-count{font-size:44rpx;font-weight:700;color:#4b87e5}.progress{height:12rpx;background:#eaf2ff;border-radius:10rpx;margin:18rpx 0;overflow:hidden}.progress-fill{height:100%;background:#3286ee}.empty-state{padding:48rpx 16rpx;text-align:center;color:#8aa0b7}.task-row{padding:20rpx 0;border-bottom:1rpx solid #edf2f7}.task-title{font-weight:600;font-size:28rpx}.done{text-decoration:line-through;color:#9aa6b0}.badge-blue{color:#3286ee;background:#eaf2ff;border-radius:12rpx;padding:6rpx 14rpx;font-size:24rpx}.gold{background:linear-gradient(135deg,#f6c453,#e9a322);color:#5b3b08}
 
 /* 空状态 */
 .empty {

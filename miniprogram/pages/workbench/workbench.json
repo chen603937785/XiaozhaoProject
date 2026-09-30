@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "小麦说职位",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "brand-nav": "/components/brand-nav/brand-nav"
+  }
+}

@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request');
+const { follow } = require('../../utils/career');
 
 // 筛选维度配置
 const PANEL_CONFIG = {
@@ -29,10 +30,6 @@ const NATURE_CLASS = {
 
 Page({
   data: {
-    // 状态栏高度(自定义导航)
-    statusBarHeight: 20,
-    // 胶囊按钮右侧留白(自定义导航)
-    menuRight: 0,
     // 搜索
     searchOpen: false,
     keyword: '',
@@ -43,8 +40,8 @@ Page({
     matchPref: {},
     matchSummary: '',
     hasMatchPref: false,
-    // 公司列表
-    companies: [],
+    // 岗位列表
+    jobs: [],
     page: 1,
     hasMore: true,
     loading: false,
@@ -83,36 +80,56 @@ Page({
   },
 
   onLoad() {
-    const sys = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-    let menuRight = 0;
-    try {
-      const menuBtn = wx.getMenuButtonBoundingClientRect();
-      menuRight = sys.windowWidth - menuBtn.left + 8;
-    } catch (e) {}
-    this.setData({
-      statusBarHeight: sys.statusBarHeight || 20,
-      menuRight
-    });
     this.loadMeta();
-    this.loadCompanies(true);
+    this.loadJobs(true);
   },
 
   onShow() {
-    this.checkBindPhone();
+    this.loadFollowed();
+  },
+
+  loadFollowed() {
+    if (!wx.getStorageSync('token')) {
+      this.followedIds = [];
+      this.setData({ jobs: this.data.jobs.map(j => ({ ...j, followed: false })) });
+      return;
+    }
+    get('/api/job-status/list').then(jobs => {
+      this.followedIds = (jobs || []).map(j => String(j.jobId));
+      this.setData({ jobs: this.data.jobs.map(j => ({ ...j, followed: this.followedIds.includes(String(j.id)) })) });
+    }).catch(() => {});
+  },
+
+  async followJob(e) {
+    if (this.followBusy) return;
+    this.followBusy = true;
+    try { if (await follow(e.currentTarget.dataset.id)) this.loadFollowed(); }
+    catch (err) { wx.showToast({ title: err.message, icon: 'none' }); }
+    finally { this.followBusy = false; }
+  },
+
+  copyJobLink(e) {
+    const url = e.currentTarget.dataset.url;
+    if (!url) { wx.showToast({ title: '暂无链接', icon: 'none' }); return; }
+    wx.setClipboardData({ data: url });
   },
 
   onPullDownRefresh() {
-    this.loadCompanies(true).finally(() => wx.stopPullDownRefresh());
+    this.loadJobs(true).finally(() => wx.stopPullDownRefresh());
   },
 
   onReachBottom() {
-    this.loadCompanies(false);
+    this.loadJobs(false);
   },
 
   // 加载筛选项字典
   loadMeta() {
     get('/api/meta/filters').then(meta => {
-      this.setData({ meta });
+      this.setData({
+        meta,
+        latestUpdate: meta.latestUpdate || '',
+        latestCount: meta.recentCount || 0
+      });
     }).catch(() => {});
   },
 
@@ -125,11 +142,15 @@ Page({
       return;
     }
     this.setData({ currentTab: tab });
-    this.loadCompanies(true);
+    this.loadJobs(true);
   },
 
   // 与我匹配: 读取偏好, 展示横条 + 用偏好筛选结果(不污染 filters)
   loadMatch() {
+    if (!wx.getStorageSync('token')) {
+      require('../../utils/career').requireLogin();
+      return;
+    }
     get('/api/user/preference').then(pref => {
       const hasPref = pref && Object.keys(pref).some(k => pref[k]);
       this.setData({
@@ -139,10 +160,10 @@ Page({
         hasMatchPref: hasPref
       });
       if (hasPref) {
-        this.loadCompanies(true);
+        this.loadJobs(true);
       } else {
         // 未设置偏好, 清空列表, 仅展示横条提示
-        this.setData({ companies: [], total: 0, hasMore: false });
+        this.setData({ jobs: [], total: 0, hasMore: false });
       }
     }).catch(() => {
       this.setData({
@@ -150,7 +171,7 @@ Page({
         matchPref: {},
         matchSummary: '',
         hasMatchPref: false,
-        companies: [],
+        jobs: [],
         total: 0,
         hasMore: false
       });
@@ -183,11 +204,11 @@ Page({
     this.setData({ keyword: e.detail.value });
   },
   onKeywordConfirm() {
-    this.loadCompanies(true);
+    this.loadJobs(true);
   },
 
-  // 加载公司列表(按公司聚合)
-  loadCompanies(reset) {
+  // 加载岗位列表
+  loadJobs(reset) {
     if (this.data.loading) return Promise.resolve();
     if (reset) this.setData({ page: 1, hasMore: true });
     if (!this.data.hasMore) return Promise.resolve();
@@ -213,14 +234,12 @@ Page({
     const qs = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join('&');
 
     this.setData({ loading: true });
-    return get('/api/companies?' + qs).then(data => {
-      const records = (data.records || []).map(c => this.decorateCompany(c));
-      const companies = reset ? records : this.data.companies.concat(records);
+    return get('/api/jobs?' + qs).then(data => {
+      const records = (data.records || []).map(job => this.decorateJob(job));
+      const jobs = reset ? records : this.data.jobs.concat(records);
       this.setData({
-        companies,
+        jobs,
         total: data.total,
-        latestUpdate: data.latestUpdate || '',
-        latestCount: data.latestCount || 0,
         page: page + 1,
         hasMore: page < data.pages,
         loading: false
@@ -231,30 +250,31 @@ Page({
     });
   },
 
-  // 公司数据后处理: 拆多值字段去重, 供标签展示
-  decorateCompany(c) {
+  // 单条岗位后处理: 拆多值字段, 供卡片标签展示
+  decorateJob(job) {
     const split = (s) => (s || '').split(',').map(x => x.trim()).filter(Boolean);
     const unique = (arr) => [...new Set(arr)];
-    // 岗位: 后端用 | 分隔不同记录, 记录内用 , 分隔岗位; 换行/制表符转空格避免撑高标签
     const positions = unique(
-      (c.positions || '')
+      (job.positions || '')
         .replace(/[\r\n\t]+/g, ' ')
-        .split('|').join(',')
         .split(',')
         .map(x => x.trim())
         .filter(Boolean)
     );
-    const fmtDate = (d) => d ? String(d).slice(5).replace('-', '/') : '';
+    const fmtDate = (d) => { if (!d) return ''; const value = String(d).slice(0, 10); const today = new Date(); const key = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0'); const y = new Date(today); y.setDate(today.getDate() - 1); const yesterday = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0'); if (value === key) return '今日'; if (value === yesterday) return '昨日'; return value.slice(5).replace('-', '/'); };
     return {
-      ...c,
-      jobCount: c.job_count,
-      nature: c.company_nature,
-      natureClass: NATURE_CLASS[c.company_nature] || 'other',
-      industryArr: unique(split(c.industries)).slice(0, 2),
-      cityArr: unique(split(c.cities)).slice(0, 3),
+      ...job,
+      followed: (this.followedIds || []).includes(String(job.id)),
+      nature: job.companyNature,
+      natureClass: NATURE_CLASS[job.companyNature] || 'other',
+      recruitLabel: split(job.recruitTypes)[0] || '',
+      industryArr: unique(split(job.industry)).slice(0, 2),
+      cityArr: unique(split(job.cities)).slice(0, 3),
       positionArr: positions.slice(0, 5),
-      publishLabel: fmtDate(c.latest_publish_date),
-      deadlineLabel: c.latest_deadline_date ? fmtDate(c.latest_deadline_date) + ' 截止' : '招满即止'
+      positionsText: positions.join(' / '),
+      publishLabel: fmtDate(job.publishDate),
+      deadlineLabel: job.deadlineDate ? fmtDate(job.deadlineDate) + ' 截止' : (job.deadline || '招满即止'),
+      hasDeadline: !!job.deadlineDate
     };
   },
 
@@ -375,7 +395,7 @@ Page({
       [`filters.${panelConfig.field}`]: value,
       showPanel: false
     });
-    this.loadCompanies(true);
+    this.loadJobs(true);
   },
 
   onPanelReset() {
@@ -390,10 +410,10 @@ Page({
     this.setData({ showPanel: false });
   },
 
-  // 跳转公司岗位页
-  goCompany(e) {
-    const name = e.currentTarget.dataset.name;
-    wx.navigateTo({ url: `/pages/company/company?name=${encodeURIComponent(name)}` });
+  // 跳转岗位详情
+  goDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
   },
 
   // 检查是否需要绑定手机号(受后台开关控制)

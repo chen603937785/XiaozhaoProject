@@ -1,39 +1,38 @@
 const { BASE_URL } = require('./config');
 
-/**
- * 微信登录: wx.login 获取 code -> 后端换 token
- * 使用原生 wx.request 避免与 request.js 循环依赖
- */
-function login() {
+// 与桌面客户端共用手机号账号和 /api/auth/password-login、/api/auth/register。
+function accountRequest(path, phone, password) {
   return new Promise((resolve, reject) => {
-    wx.login({
+    wx.request({
+      url: BASE_URL + path,
+      method: 'POST',
+      data: { phone, password },
+      header: { 'Content-Type': 'application/json' },
       success(res) {
-        if (!res.code) {
-          reject(new Error('获取登录凭证失败'));
-          return;
+        if (res.statusCode === 200 && res.data && res.data.code === 200 && res.data.data) {
+          const user = res.data.data;
+          wx.setStorageSync('token', user.token);
+          wx.setStorageSync('userId', user.userId);
+          wx.setStorageSync('phone', user.phone || '');
+          wx.setStorageSync('login_provider', 'password');
+          getApp().syncGlobal();
+          resolve(user);
+        } else {
+          reject(new Error((res.data && res.data.message) || '登录失败'));
         }
-        wx.request({
-          url: BASE_URL + '/api/auth/login',
-          method: 'POST',
-          data: { code: res.code },
-          header: { 'Content-Type': 'application/json' },
-          success(r) {
-            if (r.data && r.data.code === 200 && r.data.data) {
-              const d = r.data.data;
-              wx.setStorageSync('token', d.token);
-              wx.setStorageSync('userId', d.userId);
-              wx.setStorageSync('phone', d.phone || '');
-              resolve(d);
-            } else {
-              reject(new Error(r.data && r.data.message ? r.data.message : '登录失败'));
-            }
-          },
-          fail: reject
-        });
       },
-      fail: reject
+      fail() { reject(new Error('网络请求失败，请稍后重试')); }
     });
   });
 }
 
-module.exports = { login };
+function logout() {
+  ['token', 'userId', 'phone', 'login_provider'].forEach(key => wx.removeStorageSync(key));
+  getApp().syncGlobal();
+}
+
+module.exports = {
+  login: (phone, password) => accountRequest('/api/auth/password-login', phone, password),
+  register: (phone, password) => accountRequest('/api/auth/register', phone, password),
+  logout
+};

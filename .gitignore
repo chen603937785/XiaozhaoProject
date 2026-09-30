@@ -19,3 +19,6 @@ backend/settings-aliyun.xml
 
 # 日志
 *.log
+
+# 本地销售兑换码，不进入代码备份
+/淘宝售卖-*兑换码-*.txt

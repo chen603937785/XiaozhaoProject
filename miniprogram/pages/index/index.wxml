@@ -1,7 +1,8 @@
+<brand-nav section="岗位库" />
 <view class="page">
 
   <!-- 顶部: 分栏导航 + 搜索 icon -->
-  <view class="top-bar" style="padding-top: {{statusBarHeight}}px; padding-right: {{menuRight}}px">
+  <view class="top-bar">
     <view class="tabs">
       <view wx:for="{{tabs}}" wx:key="key"
             class="tab {{currentTab === item.key ? 'active' : ''}}"
@@ -10,7 +11,7 @@
       </view>
     </view>
     <view class="search-icon" bindtap="onSearchToggle">
-      <icon type="search" size="20" color="{{searchOpen ? '#324263' : '#666'}}" />
+      <icon type="search" size="18" color="#3286ee" />
     </view>
   </view>
 
@@ -48,9 +49,9 @@
   <!-- 结果数 + 更新时间 -->
   <view class="sort-bar">
     <view class="sort-left">
-      <text wx:if="{{latestUpdate}}" class="update-text">更新于 {{latestUpdate}} · 新增 {{latestCount}} 条</text>
+      <text wx:if="{{latestUpdate}}" class="update-text">更新于 {{latestUpdate}} · 近7天新增 {{latestCount}} 条</text>
     </view>
-    <view class="sort-right">共 {{total}} 家公司</view>
+    <view class="sort-right">共 {{total}} 个岗位</view>
   </view>
 
   <!-- 与我匹配横条 -->
@@ -62,22 +63,20 @@
     <view class="match-btn" bindtap="goPreference">设置</view>
   </view>
 
-  <!-- 公司列表 -->
+  <!-- 岗位列表（沿用原有卡片样式） -->
   <view class="company-list">
-    <view wx:for="{{companies}}" wx:key="company_name" class="card company-card" bindtap="goCompany" data-name="{{item.company_name}}">
+    <view wx:for="{{jobs}}" wx:key="id" class="card company-card" bindtap="goDetail" data-id="{{item.id}}">
       <view class="company-header">
         <view class="company-name">
-          {{item.company_name}}
+          {{item.companyName}}
           <text wx:if="{{item.nature}}" class="nature-badge nature-{{item.natureClass}}">{{item.nature}}</text>
         </view>
-        <view class="company-count">{{item.jobCount}}个岗位</view>
+        <view class="deadline-text">{{item.deadlineLabel}}</view>
       </view>
 
       <view class="info-row" wx:if="{{item.positionArr.length}}">
         <text class="info-label">岗位</text>
-        <view class="info-tags">
-          <text wx:for="{{item.positionArr}}" wx:key="*this" class="pos-tag">{{item}}</text>
-        </view>
+        <view class="position-preview">{{item.positionsText}}</view>
       </view>
 
       <view class="info-row" wx:if="{{item.industryArr.length}}">
@@ -87,25 +86,24 @@
         </view>
       </view>
 
-      <view class="info-row" wx:if="{{item.cityArr.length}}">
+      <view class="info-row location-row">
         <text class="info-label">地点</text>
         <view class="info-tags">
+          <text wx:if="{{!item.cityArr.length}}" class="city-tag">地点未注明</text>
           <text wx:for="{{item.cityArr}}" wx:key="*this" class="city-tag">{{item}}</text>
         </view>
+        <text wx:if="{{item.recruitLabel}}" class="recruit-label">{{item.recruitLabel}}</text>
       </view>
 
-      <view class="company-time">
-        <text wx:if="{{item.publishLabel}}" class="time-item">{{item.publishLabel}} 发布</text>
-        <text class="time-item {{item.latest_deadline_date ? 'time-deadline' : ''}}">{{item.deadlineLabel}}</text>
-      </view>
+      <view class="company-meta-row"><view class="company-time"><text wx:if="{{item.publishLabel}}" class="time-item {{item.publishLabel === '今日' ? 'time-today' : ''}}">{{item.publishLabel}} 发布</text></view><view class="job-actions"><button class="text-action notice-action" catchtap="copyJobLink" data-url="{{item.noticeUrl}}">公告</button><button class="text-action apply-action" catchtap="copyJobLink" data-url="{{item.applyUrl}}">投递</button><button class="text-action follow-action {{item.followed ? 'followed' : ''}}" catchtap="followJob" data-id="{{item.id}}" disabled="{{item.followed}}">{{item.followed ? '已关注' : '关注'}}</button></view></view>
     </view>
 
-    <view wx:if="{{!companies.length && !loading}}" class="empty">
+    <view wx:if="{{!jobs.length && !loading}}" class="empty">
       <text class="empty-icon">☰</text>
-      <text>没有找到相关公司</text>
+      <text>没有找到相关岗位</text>
     </view>
     <view wx:if="{{loading}}" class="loading">加载中...</view>
-    <view wx:if="{{!hasMore && companies.length}}" class="loading">没有更多了</view>
+    <view wx:if="{{!hasMore && jobs.length}}" class="loading">没有更多了</view>
   </view>
 
   <!-- 筛选面板 -->
