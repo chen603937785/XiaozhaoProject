@@ -36,4 +36,10 @@ if(command==='status'){
     cp.execFileSync('unzip',['-t',destination],{stdio:'pipe'});
     console.log(item.name+' downloaded: '+destination+' ('+fs.statSync(destination).size+' bytes)');
   }
-}else throw Error('Usage: status <tag-or-sha> | download <run-id> <output-directory>');
+}else if(command==='logs'){
+  if(!/^\d+$/.test(reference)||!output)throw Error('Usage: logs <run-id> <output-directory>');
+  const dir=path.resolve(output);fs.mkdirSync(dir,{recursive:true});
+  const destination=path.join(dir,'build-logs.zip');request('/actions/runs/'+reference+'/logs',destination);
+  cp.execFileSync('unzip',['-o',destination,'-d',dir],{stdio:'pipe'});
+  console.log('Build logs: '+dir);
+}else throw Error('Usage: status <tag-or-sha> | download <run-id> <output-directory> | logs <run-id> <output-directory>');
