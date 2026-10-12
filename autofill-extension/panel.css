@@ -1,0 +1,48 @@
+#xiaomai-debug-panel{position:fixed;right:24px;top:100px;width:288px;max-width:calc(100vw - 16px);z-index:2147483646;color:#213852;font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;pointer-events:auto;text-align:left;color-scheme:light}
+#xiaomai-debug-panel *{box-sizing:border-box;font-family:inherit;letter-spacing:normal}
+#xiaomai-debug-panel button{appearance:none;font:inherit;cursor:pointer;box-shadow:none;min-width:0;margin:0;text-transform:none}
+#xiaomai-debug-panel [hidden]{display:none!important}
+#xiaomai-debug-panel .xd-shell{padding:10px;border:1px solid #d9e9fb;border-radius:24px;background-color:#eaf3fc;background-image:linear-gradient(#7fa9d110 1px,transparent 1px),linear-gradient(90deg,#7fa9d110 1px,transparent 1px);background-size:20px 20px;box-shadow:0 7px 22px #2f527315;max-height:calc(100vh - 16px);overflow:auto;scrollbar-width:thin}
+#xiaomai-debug-panel .xd-head{position:relative;display:flex;align-items:center;height:56px;padding:0 14px;background:#fff;border:1px solid #b7d5ff;border-bottom:0;border-radius:18px 18px 0 0;cursor:grab;touch-action:none;user-select:none}
+#xiaomai-debug-panel .xd-head:active{cursor:grabbing}
+#xiaomai-debug-panel .xd-head>span{color:#91a8c1;font-size:11px;font-weight:500}
+#xiaomai-debug-panel .xd-head button{position:absolute;right:12px;top:11px;width:26px;height:26px;padding:0;border:0;background:transparent;color:#7f96b0;font-size:24px;line-height:26px;font-weight:400}
+#xiaomai-debug-panel .xd-quick{padding:31px 16px 16px;min-height:350px;background:#fff;border:1px solid #b7d5ff;border-top:0;border-radius:0 0 18px 18px}
+#xiaomai-debug-panel .xd-fill-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px}
+#xiaomai-debug-panel .xd-fill-now{width:184px;max-width:calc(100% - 32px);height:64px;flex:none;padding:0;border:0;border-radius:17px;background:#2161f5;color:white;font-size:23px;font-weight:500;line-height:64px;transition:background .15s}
+#xiaomai-debug-panel .xd-fill-now:hover{background:#1854dc}
+#xiaomai-debug-panel .xd-help{width:24px;height:24px;padding:0;flex:none;background:#e8f1ff;color:#2766ef;border:0;border-radius:50%;font-size:16px;line-height:24px}
+#xiaomai-debug-panel .xd-resume-caption{text-align:center;font-size:12px;color:#476286;overflow-wrap:anywhere}
+#xiaomai-debug-panel .xd-mode-caption{text-align:center;color:#95a7bc;font-size:10px;margin:6px 0 17px}
+#xiaomai-debug-panel .xd-quick-actions{display:flex;align-items:center;justify-content:center;gap:12px}
+#xiaomai-debug-panel button.xd-btn{border:1px solid #e3edf9;border-radius:8px;padding:7px 10px;background:#f1f6ff;color:#2473c5;font-size:12px;line-height:1.5;white-space:nowrap}
+#xiaomai-debug-panel button.xd-primary{background:#2161f5;color:#fff;border-color:#2161f5}
+#xiaomai-debug-panel button.xd-danger{background:#fff5f7;color:#d25875;border-color:#f8e7ec}
+#xiaomai-debug-panel .xd-status{margin:16px 0 12px;padding:9px 11px;background:#f5f9ff;border-radius:9px;color:#7288a3;font-size:11px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}
+#xiaomai-debug-panel .xd-bottom-note{text-align:center;font-size:10px;color:#a1b1c5;margin:8px 0 12px}
+#xiaomai-debug-panel .xd-debug-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 0 0;border:0;border-top:1px solid #eef3fa;color:#7094c2;background:transparent;font-size:11px}
+#xiaomai-debug-panel .xd-missing{color:#df6585;background:#fff5f8;border-radius:8px;padding:8px;font-size:11px;line-height:1.7}
+#xiaomai-debug-panel.xd-debug-open{width:390px}
+#xiaomai-debug-panel .xd-body{margin-top:10px;border:1px solid #b7d5ff;border-radius:16px;max-height:40vh;overflow:auto;padding:12px;background:#fff}
+#xiaomai-debug-panel .xd-row{display:flex;gap:6px;margin-bottom:8px}
+#xiaomai-debug-panel input,#xiaomai-debug-panel select{min-width:0;flex:1;padding:7px 8px;border:1px solid #dbe6f2;border-radius:8px;background:#f8fbff;color:#294762;outline:none;font-size:12px;height:auto}
+#xiaomai-debug-panel .xd-tabs{display:flex;gap:5px;margin:10px 0}
+#xiaomai-debug-panel .xd-tabs button{flex:1;padding:7px 3px;border:0;border-radius:8px;background:#f1f6fc;color:#5b7590;font-size:12px}
+#xiaomai-debug-panel .xd-tabs button.on{background:#dceeff;color:#1767b7;font-weight:600}
+#xiaomai-debug-panel .xd-field{margin:7px 0;padding:9px;border:1px solid #e3edf7;border-radius:10px;background:#fbfdff}
+#xiaomai-debug-panel .xd-field-title{display:flex;gap:6px;align-items:flex-start;justify-content:space-between;color:#243f5a;font-weight:650}
+#xiaomai-debug-panel .xd-field-title span{min-width:0;word-break:break-all}
+#xiaomai-debug-panel .xd-meta{margin-top:4px;color:#7188a0;font-size:11px;word-break:break-all}
+#xiaomai-debug-panel .xd-match{margin-top:4px;color:#127a59;font-size:11px}
+#xiaomai-debug-panel .xd-options{margin-top:6px;padding:6px;color:#795b2c;background:#fff9e9;border-radius:7px;font-size:11px;white-space:pre-wrap;word-break:break-all}
+#xiaomai-debug-panel .xd-actions{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+#xiaomai-debug-panel .xd-log{margin-top:6px;padding:7px;border-bottom:1px solid #edf2f7;font-size:11px;word-break:break-all}
+#xiaomai-debug-panel .xd-log small{display:block;color:#7b91a7}
+#xiaomai-debug-panel .xd-mini{color:#8397ab;font-size:11px}
+#xiaomai-debug-panel .xd-test{margin:7px 0 0}
+#xiaomai-debug-panel .xd-result{margin-top:6px;color:#127a59;font-size:12px;word-break:break-all}
+#xiaomai-debug-panel .xd-error{color:#c43a3a}
+#xiaomai-debug-panel button:disabled{opacity:.45;cursor:default}
+#xiaomai-debug-panel .xd-overwrite{display:flex;align-items:center;gap:6px;margin:4px 0 10px;font-size:11px;color:#7188a0}
+#xiaomai-debug-panel .xd-overwrite input{flex:none;width:14px;height:14px;margin:0}
+#xiaomai-debug-panel button:focus-visible,#xiaomai-debug-panel input:focus-visible{outline:2px solid #1764ff;outline-offset:2px}

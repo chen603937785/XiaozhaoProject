@@ -1,0 +1,6 @@
+(function(){
+  if(window.__XIAOMAI_NETWORK_HOOK__)return;window.__XIAOMAI_NETWORK_HOOK__=true;
+  const emit=(method,url,status,body)=>{try{let keys='';if(body&&typeof body==='object'&&!Array.isArray(body))keys='响应键：'+Object.keys(body).slice(0,30).join(', ');window.dispatchEvent(new CustomEvent('xiaomai-debug-network',{detail:{method,url,status,keys}}));}catch(_){}};
+  const originalFetch=window.fetch;window.fetch=function(input,init){const method=init?.method||input?.method||'GET',url=typeof input==='string'?input:input?.url||'';return originalFetch.apply(this,arguments).then(r=>{void (async()=>{let body=null;try{const clone=r.clone();const type=clone.headers.get('content-type')||'';if(type.includes('json'))body=await clone.json();}catch(_){}emit(method,url,r.status,body);})();return r;},error=>{emit(method,url,0,'');throw error;});};
+  const open=XMLHttpRequest.prototype.open,send=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(method,url){this.__xiaomai={method,url};return open.apply(this,arguments);};XMLHttpRequest.prototype.send=function(){this.addEventListener('load',()=>{let body=null;try{body=JSON.parse(this.responseText)}catch(_){}emit(this.__xiaomai?.method||'XHR',this.__xiaomai?.url||'',this.status,body);});return send.apply(this,arguments);};
+})();

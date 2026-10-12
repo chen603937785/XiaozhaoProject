@@ -2,12 +2,14 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::{LogicalPosition, LogicalSize, Manager, State, WebviewBuilder, WebviewUrl};
+use tauri::{Emitter, LogicalPosition, LogicalSize, Manager, State, WebviewBuilder, WebviewUrl};
+use serde_json::Value;
+mod autofill_update;
 
 struct TitleState(Arc<Mutex<HashMap<String, String>>>);
 
 /// 简历数据（字段名 -> 字段值）
-struct ResumeState(Arc<Mutex<HashMap<String, String>>>);
+struct ResumeState(Arc<Mutex<serde_json::Value>>);
 
 fn get_child_webview(window: &tauri::Window, label: &str) -> Option<tauri::Webview> {
     window.webviews().into_iter().find(|w| w.label() == label)
@@ -63,9 +65,49 @@ fn restore_main_webview(window: &tauri::Window) -> Result<(), String> {
     Ok(())
 }
 
+/// 外部招聘站点可能通过 CSP 禁止页面脚本跨域请求。AI 请求由客户端原生层转发，
+/// 这样既不暴露 AI 密钥，也不依赖招聘站点的 connect-src 配置。
+#[tauri::command]
+async fn autofill_ai_config(auth_token: String) -> Result<Value, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let response = client
+        .get("https://my88ai.com/api/autofill/config")
+        .bearer_auth(auth_token)
+        .send()
+        .await
+        .map_err(|e| format!("AI 配置请求失败: {e}"))?;
+    let status = response.status();
+    let body = response.json::<Value>().await.map_err(|e| format!("AI 配置响应无效: {e}"))?;
+    if !status.is_success() { return Err(body.get("message").and_then(Value::as_str).unwrap_or("AI 配置请求失败").to_string()); }
+    Ok(body)
+}
+
+#[tauri::command]
+async fn autofill_ai_analyze(auth_token: String, fields: Vec<Value>) -> Result<Value, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(25))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let response = client
+        .post("https://my88ai.com/api/autofill/analyze")
+        .bearer_auth(auth_token)
+        .json(&serde_json::json!({"fields": fields}))
+        .send()
+        .await
+        .map_err(|e| format!("AI 识别请求失败: {e}"))?;
+    let status = response.status();
+    let body = response.json::<Value>().await.map_err(|e| format!("AI 识别响应无效: {e}"))?;
+    if !status.is_success() { return Err(body.get("message").and_then(Value::as_str).unwrap_or("AI 识别请求失败").to_string()); }
+    Ok(body)
+}
+
 /// 保存简历数据
 #[tauri::command]
-fn save_resume(state: State<ResumeState>, data: HashMap<String, String>) -> Result<(), String> {
+fn save_resume(webview: tauri::Webview, state: State<ResumeState>, data: serde_json::Value) -> Result<(), String> {
+    if webview.label() != "main" { return Err("仅主界面可更新简历".into()); }
     let mut map = state.0.lock().map_err(|e| e.to_string())?;
     *map = data;
     Ok(())
@@ -73,7 +115,8 @@ fn save_resume(state: State<ResumeState>, data: HashMap<String, String>) -> Resu
 
 /// 读取简历数据
 #[tauri::command]
-fn get_resume(state: State<ResumeState>) -> Result<HashMap<String, String>, String> {
+fn get_resume(webview: tauri::Webview, state: State<ResumeState>) -> Result<serde_json::Value, String> {
+    if webview.label() != "main" { return Err("仅主界面可读取简历".into()); }
     let map = state.0.lock().map_err(|e| e.to_string())?;
     Ok(map.clone())
 }
@@ -83,7 +126,7 @@ fn get_resume(state: State<ResumeState>) -> Result<HashMap<String, String>, Stri
 fn update_webview_resume(window: tauri::Window, resume: State<ResumeState>) -> Result<(), String> {
     let data = resume.0.lock().map_err(|e| e.to_string())?.clone();
     let json = serde_json::to_string(&data).unwrap_or_else(|_| "{}".into());
-    let script = format!("window.__RESUME_DATA__ = {};", json);
+    let script = format!("window.__RESUME_DATA__ = {}; window.dispatchEvent(new Event('xiaomai-resume-updated'));", json);
     for w in window.webviews() {
         let _ = w.eval(&script);
     }
@@ -102,13 +145,20 @@ async fn create_webview(
     y: f64,
     width: f64,
     height: f64,
+    auth_token: String,
 ) -> Result<(), String> {
     let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
     let resume_data = resume.0.lock().map_err(|e| e.to_string())?.clone();
     let resume_json = serde_json::to_string(&resume_data).unwrap_or_else(|_| "{}".into());
-    let resume_script = format!("window.__RESUME_DATA__ = {};", resume_json);
+    let token_json = serde_json::to_string(&auth_token).unwrap_or_else(|_| "\"\"".into());
+    let resume_script = format!("window.__RESUME_DATA__ = {}; window.__XIAOMAI_AUTH_TOKEN__ = {};", resume_json, token_json);
     let map = state.0.clone();
     let title_label = label.clone();
+    let engine = match window.app_handle().path().app_cache_dir() {
+        Ok(dir) => autofill_update::load(&dir).await,
+        Err(_) => autofill_update::BUNDLED.into(),
+    };
+    let app = window.app_handle().clone();
 
     // 尺寸必须从原生窗口读取：主 webview 收缩后，前端的
     // window.innerHeight 只剩顶栏高度，不能再用它计算网页高度。
@@ -121,13 +171,22 @@ async fn create_webview(
     split_main_for_browser(&window, y)?;
 
     let mut builder = WebviewBuilder::new(label, WebviewUrl::External(parsed))
+        .on_navigation(move |url| {
+            if url.scheme()=="xiaomai" {
+                if url.host_str()==Some("resume") { let _=app.emit_to("main","autofill-edit-resume",()); }
+                return false;
+            }
+            true
+        })
         .on_document_title_changed(move |_webview, title| {
             if let Ok(mut m) = map.lock() {
                 m.insert(title_label.clone(), title);
             }
         })
         .initialization_script(&resume_script)
-        .initialization_script(include_str!("../autofill.js"));
+        .initialization_script(&format!(
+            "(()=>{{const boot=()=>{{try{{(new Function({}))();}}catch(e){{delete window.__XIAOMAI_FILL__;document.getElementById('xiaomai-autofill')?.remove();console.warn('填写脚本异常，使用内置版本');\n{}\n}}}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{{once:true}});else boot();}})();",
+            serde_json::to_string(&engine).unwrap(), autofill_update::BUNDLED));
     #[cfg(target_os = "macos")]
     {
         builder = builder.data_store_identifier(*b"campus-job-web01");
@@ -244,7 +303,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(TitleState(Arc::new(Mutex::new(HashMap::new()))))
-        .manage(ResumeState(Arc::new(Mutex::new(HashMap::new()))))
+        .manage(ResumeState(Arc::new(Mutex::new(serde_json::json!({"resumes":[]})))) )
         .invoke_handler(tauri::generate_handler![
             save_resume,
             get_resume,
@@ -260,6 +319,8 @@ fn main() {
             webview_go_back,
             webview_go_forward,
             webview_zoom
+            ,autofill_ai_config,
+            autofill_ai_analyze
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

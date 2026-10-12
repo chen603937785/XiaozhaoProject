@@ -80,7 +80,9 @@ export function createResume(data) { return post('/api/resumes', data); }
 export function getResumeDetail(id) { return get(`/api/resumes/${id}`); }
 export function updateResume(id, data) { return put(`/api/resumes/${id}`, data); }
 export function deleteResume(id) { return del(`/api/resumes/${id}`); }
-export function copyResume(id) { return post(`/api/resumes/${id}/copy`); }
+export function copyResume(id, data = {}) { return post(`/api/resumes/${id}/copy`, data); }
+export function getResumeSchema() { return get('/api/resume-schema'); }
+export function reorderResumeSection(id, type, ids) { return put(`/api/resumes/${id}/sections/${type}/order`, { ids }); }
 export function setResumeDefault(id) { return post(`/api/resumes/${id}/set-default`); }
 export function listSection(id, type) { return get(`/api/resumes/${id}/sections/${type}`); }
 export function addSection(id, type, data) { return post(`/api/resumes/${id}/sections/${type}`, data); }
@@ -161,3 +163,10 @@ export function getCustomerQr() {
 
 // 公开配置（含后台可配的会员原价、限时价）
 export function getPublicConfig() { return get('/api/config'); }
+
+export function getMembershipPaymentQr() {
+  return getPublicConfig().then(cfg => {
+    const path = cfg?.membershipPaymentQrImage;
+    return typeof path === 'string' && /^\/downloads\/[a-zA-Z0-9_.-]+$/.test(path) ? BASE_URL + path : '';
+  });
+}

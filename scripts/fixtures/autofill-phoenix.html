@@ -1,0 +1,56 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>信达公开 Phoenix 组件本地验收</title>
+<link rel="stylesheet" href="/deps/phoenix/pc.css">
+<style>body{font:16px sans-serif;padding:28px;background:#f5f8fc}.resume-tpl-wrap{background:#fff;padding:20px;max-width:700px}.resume-form-item{margin:20px 0}.resume-form-title{margin:8px 0}.phoenix-select{width:280px}pre{white-space:pre-wrap}</style>
+<script src="/deps/react/umd/react.development.js"></script><script src="/deps/react-dom/umd/react-dom.development.js"></script>
+<script src="/phoenix-runtime.js"></script>
+<script src="/deps/phoenix/vendors-4872c81bd93c3deb653c.js"></script>
+<script src="/deps/phoenix/beisen-platform-e64ca1171d3b78b613e5.js"></script>
+<script src="/deps/phoenix/moment-d5cfe0082860a49ca6b5.js"></script>
+<script src="/deps/phoenix/beisen-0.js"></script><script src="/deps/phoenix/beisen-1.js"></script><script src="/deps/phoenix/beisen-2.js"></script>
+<script src="/deps/phoenix/mobile.js"></script><script src="/deps/phoenix/app.js"></script>
+</head><body><h1>信达控件本地验收（虚构资料，不提交）</h1><div id="app"></div><button type="button" id="blank">切换焦点</button><pre id="result"></pre>
+<script>
+window.BSGlobal={I18NInfo:{I18NUserLang:'zh_CN'}};
+const req=phoenixRequire;
+req.m[57689]=module=>module.exports=window.React;req.m[97326]=module=>module.exports=window.ReactDOM;
+const e=React.createElement;
+window.commits={};window.searches=0;
+const FieldDate=req(77589).ZP,FieldMonth=req(77589).K7;
+const FieldSelect=req(15156).Z;
+const FieldArea=req(46461).Z;
+const areas=[['1',['中国'],null,1],['2',['海外'],null,1],['110000',['北京市'],'1',1],['330000',['浙江省'],'1',1],['330100',['杭州市'],'330000',1],['330106',['西湖区'],'330100',0]];
+// Public vendor exports; no original recruitment application module is run.
+window.phoenixExports={date:Object.keys(req(77589)),select:Object.keys(req(92952)),list:Object.keys(req(7612)),field:Object.keys(req(5771))};
+const field=(id,title,child)=>e('div',{id,className:'resume-form-item'},e('div',{className:'resume-form-title'},title),child);
+function Demo(){
+ const [birth,setBirth]=React.useState(''),[month,setMonth]=React.useState(''),[ethnicity,setEthnicity]=React.useState({}),[degree,setDegree]=React.useState({}),[area,setArea]=React.useState([]),[province,setProvince]=React.useState([]),[city,setCity]=React.useState([]),[restricted,setRestricted]=React.useState([]);
+ const areaProps={areaData:areas,showForeignSource:false,showRootInSelection:true,alwaysShowArrows:true,canSelectRoot:true};
+ return e('section',{className:'resume-tpl-wrap'},e('div',{className:'title-txt'},'个人信息'),
+ field('ph-date','出生日期',e(FieldDate,{value:birth,onSelect:v=>{setBirth(v.format('YYYY/MM/DD'));commits.birth=v.format('YYYY-MM-DD');}})),
+ field('ph-month','开始时间',e(FieldMonth,{value:month,onChange:v=>{setMonth(v);commits.month=v;}})),
+ field('ph-ethnicity','民族',e(FieldSelect,{value:ethnicity,options:[{value:'01',label:'汉族'},{value:'02',label:'回族'}],onChange:v=>{setEthnicity(v);commits.ethnicity=v.value;}})),
+ field('ph-degree','学历',e(FieldSelect,{value:degree,useSelectorSearch:true,onSearch:()=>{searches++;},options:[{value:'B',label:'大学本科'},{value:'M',label:'硕士研究生'}],onChange:v=>{setDegree(v);commits.degree=v.value;}})),
+ field('ph-area','籍贯',e(FieldArea,{...areaProps,value:area,onChange:v=>{setArea(v);commits.area=v.map(x=>x.id);}})),
+ field('ph-province','籍贯（省级可选）',e(FieldArea,{...areaProps,value:province,onChange:v=>{setProvince(v);commits.province=v.map(x=>x.id);}})),
+ field('ph-city','籍贯（市级可选）',e(FieldArea,{...areaProps,value:city,onChange:v=>{setCity(v);commits.city=v.map(x=>x.id);}})),
+ field('ph-restricted','籍贯（必须区县）',e(FieldArea,{...areaProps,selectedLevel:3,value:restricted,onChange:v=>{setRestricted(v);commits.restricted=v.map(x=>x.id);}})));
+}
+ReactDOM.render(e(Demo),document.getElementById('app'));
+</script>
+<script src="/autofill-extension/vendor/ai-helpers.js"></script><script src="/autofill-extension/vendor/custom-controls.js"></script>
+<script src="/autofill-extension/vendor/control-adapters.js"></script><script src="/autofill-extension/vendor/field-scan.js"></script>
+<script src="/autofill-extension/controls.js"></script><script src="/autofill-extension/wintalent-controls.js"></script>
+<script src="/autofill-extension/phoenix-controls.js"></script><script src="/autofill-extension/engine.js"></script>
+<script src="/autofill-extension/resume-schema.js"></script><script src="/autofill-extension/fields.js"></script>
+<script>
+window.runCases=async()=>{
+ const fields=XiaomaiFields.scan(),results=[];
+ for(const [id,value] of [['ph-date','2003-05-18'],['ph-month','2020-09-01'],['ph-ethnicity','汉族'],['ph-degree','本科'],['ph-area','浙江省 / 杭州市 / 西湖区']]){
+  const item=fields.find(x=>x.el.closest('#'+id));
+  try{const opened=XiaomaiControls.type(item.el)==='date'?[]:await XiaomaiControls.open(item.el),filled=await XiaomaiControls.fill(item.el,value);document.getElementById('blank').focus();results.push({id,opened,ok:filled.ok,check:XiaomaiControls.check(item.el),value:XiaomaiControls.value(item.el)});}
+  catch(error){results.push({id,ok:false,reason:error.code||error.message});}
+ }
+ const answer={results,commits:window.commits,searches:window.searches};document.getElementById('result').textContent=JSON.stringify(answer,null,2);return answer;
+};
+</script>
+</body></html>

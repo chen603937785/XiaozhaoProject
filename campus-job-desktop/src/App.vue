@@ -1,10 +1,10 @@
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from 'vue';
 import {
   fetchMeta, fetchJobs, getToken, setToken, clearToken,
   getPreference, savePreference, getUserInfo,
   followJob, unfollowJob, getJobStatusList, updateJobStatus, getPlans,
-  getLatestVersion, getResumes, getResumeDetail
+  getLatestVersion, getResumes, getResumeDetail, getResumeSchema
 } from './api';
 import FilterDropdown from './components/FilterDropdown.vue';
 import CityCascader from './components/CityCascader.vue';
@@ -269,6 +269,8 @@ function downloadClient(platform) {
 
 function logout() {
   clearToken();
+  resumeLoadGeneration++;
+  if (!IS_WEB) invoke('save_resume', { data: { resumes: [] } }).then(() => invoke('update_webview_resume')).catch(() => {});
   loggedIn.value = false;
   userInfo.value = null;
   followedIds.value = new Set();
@@ -583,7 +585,7 @@ async function openLink(url) {
   await nextTick();
   const { x, y, width, height } = browserBounds();
   try {
-    await invoke('create_webview', { label, url, x, y, width, height });
+    await invoke('create_webview', { label, url, x, y, width, height, authToken: getToken() || '' });
     await nextTick();
     syncWindowsBrowserLayout(tabs.value.find(t => t.id === label));
   } catch (e) {
@@ -594,42 +596,23 @@ async function openLink(url) {
   pollTitle(label);
 }
 
-// 读取默认简历，整理成扁平结构，同步到 Rust 端（供 webview 自动填写注入）
+// 发送完整简历结构；字段映射和控件适配留在可更新脚本中。
+let resumeLoadGeneration = 0;
 async function loadResumeForAutofill() {
-  if (!getToken()) return;
+  if (IS_WEB) return;
+  const generation = ++resumeLoadGeneration;
+  const token = getToken();
+  await invoke('save_resume', { data: { resumes: [] } });
+  await invoke('update_webview_resume');
+  if (!token) return;
   try {
     const resumes = await getResumes();
-    if (!resumes.length) return;
-    const def = resumes.find(r => r.isDefault) || resumes[0];
-    const detail = await getResumeDetail(def.id);
-    const flat = flattenResume(detail);
-    await invoke('save_resume', { data: flat }).catch(() => {});
-  } catch (e) {}
-}
-
-function flattenResume(detail) {
-  const p = detail?.profile || {};
-  const edu = detail?.education?.[0] || {};
-  const exp = detail?.experience?.[0] || {};
-  const proj = detail?.project?.[0] || {};
-  const out = {};
-  const map = {
-    '姓名': p.chineseName, '英文姓名': p.englishName, '性别': p.gender,
-    '出生日期': p.birthDate, '手机号': p.phone, '邮箱': p.email,
-    '证件号码': p.idNumber, '所在城市': p.currentCity, '籍贯': p.nativePlace,
-    '政治面貌': p.politicalStatus, '民族': p.ethnicity, '微信号': p.wechat,
-    '紧急联系人': p.emergencyContact, '紧急联系人电话': p.emergencyPhone,
-    '学校': edu.schoolName, '专业': edu.major, '学历': edu.educationLevel,
-    '毕业时间': edu.endDate, 'GPA': edu.gpa,
-    '公司': exp.companyName, '职位': exp.position,
-    '项目名称': proj.projectName,
-    '期望城市': detail?.targetCities, '期望薪资': detail?.expectedSalary,
-    '自我评价': detail?.selfEvaluation
-  };
-  for (const [k, v] of Object.entries(map)) {
-    if (v) out[k] = String(v);
-  }
-  return out;
+    const details = await Promise.all(resumes.map(r => getResumeDetail(r.id)));
+    const schema = await getResumeSchema();
+    if (generation !== resumeLoadGeneration || token !== getToken()) return;
+    await invoke('save_resume', { data: { protocol: 1, schema, resumes: details } });
+    await invoke('update_webview_resume');
+  } catch (e) { console.warn('填写资料加载失败', e); }
 }
 
 // 网页打开方式：webview 内置 / 系统浏览器
@@ -783,7 +766,13 @@ function onProvinceChange() {
   search();
 }
 
+let stopAutofillListener;
+onUnmounted(() => { if (stopAutofillListener) stopAutofillListener(); });
 onMounted(async () => {
+  if (!IS_WEB) {
+    const { listen } = await import('@tauri-apps/api/event');
+    stopAutofillListener = await listen('autofill-edit-resume', () => openTab('简历管理'));
+  }
   window.addEventListener('resize', () => {
     if (activeWebTab.value) syncWindowsBrowserLayout(activeWebTab.value);
   });
@@ -819,11 +808,11 @@ onMounted(async () => {
           <div class="brand-avatar"><div class="avatar-ring"><svg viewBox="0 0 48 48" width="38" height="38"><rect x="11" y="19" width="26" height="21" rx="7" fill="#4a86e8"/><circle cx="20" cy="28" r="3.2" fill="#fff"/><circle cx="28" cy="28" r="3.2" fill="#fff"/><rect x="18" y="34" width="12" height="3" rx="1.5" fill="#fff"/><line x1="24" y1="11" x2="24" y2="17" stroke="#4a86e8" stroke-width="2.5"/><circle cx="24" cy="9" r="2.5" fill="#4a86e8"/></svg></div></div>
           <div class="brand-info" v-show="!sidebarCollapsed">
             <template v-if="IS_WEB">
-              <div class="brand-name">橙子校招</div>
+              <div class="brand-name">小麦说职位</div>
               <div class="brand-desc">手机、电脑、客户端多端互通</div>
             </template>
             <template v-else>
-              <div class="brand-name">求职助手</div>
+              <div class="brand-name">小麦说职位</div>
               <div class="brand-desc">校招求职管理</div>
               <div class="brand-desc">一站式效率工具</div>
             </template>
@@ -1061,8 +1050,8 @@ onMounted(async () => {
           </div>
 
           <!-- 简历管理页签 -->
-          <div v-show="activeTabId === '简历管理'">
-            <ResumeManage @require-login="handleRequireLogin" @changed="handleResumeChanged" />
+          <div v-show="activeTabId === '简历管理'" style="height:100%;min-height:0">
+            <ResumeManage :logged-in="loggedIn" @require-login="handleRequireLogin" @changed="handleResumeChanged" />
           </div>
 
           <!-- 岗位跳转页签 -->
@@ -1251,10 +1240,10 @@ onMounted(async () => {
 .sidebar.collapsed .menu-item { justify-content: center; padding: 14px 0; }
 .sidebar.collapsed .primary-btn { padding: 0 10px; }
 .sidebar.collapsed .account-card { justify-content: center; padding: 14px 0; }
-.brand { height: 140px; background: linear-gradient(180deg, #f4f8ff, #eef4fc); border-radius: 16px; padding: 20px 16px; display: flex; align-items: center; gap: 14px; }
+.brand { height: 140px; background: linear-gradient(180deg, #f4f8ff, #eef4fc); border-radius: 16px; padding: 20px 12px; display: flex; align-items: center; gap: 9px; }
 .avatar-ring { width: 56px; height: 56px; border-radius: 50%; background: #e3eeff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #d5e7ff; }
 .brand-info { overflow: hidden; }
-.brand-name { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.brand-name { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; white-space: nowrap; }
 .brand-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
 .brand-divider { height: 1px; background: var(--border); margin: 14px 4px; }
 .download-entry { display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 8px); margin: 12px 4px 0; height: 40px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #2f80ed, #67b7f6); color: #fff; font-weight: 700; cursor: pointer; }

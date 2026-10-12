@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小麦填写助手</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="profile">
+    <div class="profile-line">
+      <div class="avatar" id="avatar">麦</div>
+      <div class="profile-name"><button id="user-name" class="name-button">登录 / 注册</button><button id="vip-button" class="vip-button"><span>♛</span><span id="vip-text">开通会员</span></button></div>
+      <button id="more-button" class="more-button" aria-label="更多" aria-expanded="false">•••</button>
+    </div>
+    <p class="vip-tip" id="vip-tip">升级 vip，立刻提速</p>
+    <div id="more-menu" class="more-menu" hidden><button id="logout">退出登录</button></div>
+    <span class="brand-caption">小麦说职位 · 网申填写助手</span>
+  </header>
+  <main class="main-panel">
+    <nav class="tabs" role="tablist" aria-label="内容切换">
+      <button id="resume-tab" class="tab active" role="tab" aria-selected="true" aria-controls="resume-page">简历</button>
+      <button id="jobs-tab" class="tab" role="tab" aria-selected="false" aria-controls="jobs-page">关注岗位</button>
+    </nav>
+    <div id="message" class="message" role="status" hidden></div>
+    <section id="resume-page" class="tab-page" role="tabpanel" aria-labelledby="resume-tab">
+      <h1>当前简历</h1>
+      <div class="dropdown" id="resume-dropdown">
+        <button id="resume-select" class="select-button" aria-haspopup="listbox" aria-expanded="false"><span id="resume-label">登录后选择简历</span><span class="chevron">▾</span></button>
+        <div id="resume-options" class="options" role="listbox" aria-label="简历版本" hidden></div>
+      </div>
+      <div class="resume-actions"><button id="refresh-resume" class="outline-button"><span class="button-icon">↻</span>刷新简历</button><button id="edit-resume" class="outline-button"><span class="button-icon">▤</span>修改简历</button></div>
+      <p class="refresh-tip">提醒：修改简历后点击“刷新简历”，数据才会更新！</p>
+      <div class="setting-row"><span>一键填入方式 <button id="mode-help" class="help-icon" aria-label="填写方式说明">?</button></span>
+        <div class="dropdown mode-dropdown">
+          <button id="mode-select" class="select-button" aria-haspopup="listbox" aria-expanded="false"><span id="mode-label">仅填新增内容</span><span class="chevron">▾</span></button>
+          <div id="mode-options" class="options" role="listbox" aria-label="一键填入方式" hidden><button role="option" data-mode="preserve">仅填新增内容<span>✓</span></button><button role="option" data-mode="overwrite">全部覆盖重填<span>✓</span></button></div>
+        </div>
+      </div>
+      <div class="setting-row reminder-row"><label for="missing-reminder">简历信息缺失提醒</label><input id="missing-reminder" class="switch" type="checkbox" checked></div>
+      <div id="missing-summary" class="missing-summary">填入时提示简历空值与未匹配项，方便逐项补齐。</div>
+      <button id="open-floating" class="floating-entry"><span class="floating-symbol">↗</span><span>打开悬浮操作框<small>独立操作 · 可拖动 · 可关闭</small></span><span class="entry-arrow">›</span></button>
+    </section>
+    <section id="jobs-page" class="tab-page" role="tabpanel" aria-labelledby="jobs-tab" hidden><div class="jobs-heading"><h1>关注岗位</h1><button id="refresh-jobs" class="text-button">刷新</button></div><div id="jobs-list" class="jobs-list"></div></section>
+  </main>
+  <footer class="footer"><button id="website"><span>⌂</span>访问官网</button><span class="version" id="version"></span><button id="support">客服</button><button id="help">帮助</button></footer>
+  <dialog id="login-dialog"><form id="login-form"><button type="button" class="dialog-close" id="login-close" aria-label="关闭">×</button><h2>登录小麦账号</h2><p>与手机、电脑、客户端使用相同账号，简历多端互通。</p><label>手机号<input id="phone" type="tel" inputmode="numeric" autocomplete="username" maxlength="11" placeholder="请输入手机号" required></label><label>密码<input id="password" type="password" autocomplete="current-password" placeholder="请输入密码" required></label><div id="login-error" class="login-error" role="alert"></div><button id="login-submit" class="primary-button" type="submit">登录</button><button id="register" class="text-button register-button" type="button">还没有账号？前往官网注册</button></form></dialog>
+  <dialog id="info-dialog"><button id="info-close" class="dialog-close" aria-label="关闭">×</button><h2 id="info-title"></h2><div id="info-content" class="info-content"></div></dialog>
+  <script src="popup.js"></script>
+</body>
+</html>

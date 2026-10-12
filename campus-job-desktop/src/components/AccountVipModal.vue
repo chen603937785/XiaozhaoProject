@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import taobaoShopQr from '../assets/taobao-shop-qr.jpg';
-import { updateNickname, redeemCode, getPublicConfig } from '../api';
+import { updateNickname, redeemCode, getMembershipPaymentQr } from '../api';
 
 const props = defineProps({
   phone: String,
@@ -14,23 +13,16 @@ const emit = defineEmits(['close', 'logout', 'updateNickname', 'redeemed']);
 const codeInput = ref('');
 const redeeming = ref(false);
 const redeemMsg = ref('');
-const showShop = ref(false);
-const copyMessage = ref('');
-const TAOBAO_CODE = '【淘宝】https://e.tb.cn/h.8wgjIq2YZ34lcLQ?tk=jbxiTlHwFYN MF278 ';
-
-const prices = ref([
-  { key: 'month', name: '月卡', days: 30, original: '19.9', sale: '9.9' },
-  { key: 'quarter', name: '季卡', days: 90, original: '49.9', sale: '25.9' },
-  { key: 'year', name: '年卡', days: 365, original: '168', sale: '88' }
-]);
-const tierClass = { month: 'tier-month', quarter: 'tier-quarter', year: 'tier-year' };
-
-onMounted(async () => {
+const paymentQr = ref('');
+const qrState = ref('loading');
+async function loadPaymentQr() {
+  qrState.value = 'loading';
   try {
-    const cfg = await getPublicConfig();
-    if (Array.isArray(cfg?.vipPrices) && cfg.vipPrices.length) prices.value = cfg.vipPrices;
-  } catch (e) {}
-});
+    paymentQr.value = await getMembershipPaymentQr();
+    qrState.value = paymentQr.value ? 'ready' : 'empty';
+  } catch (e) { qrState.value = 'error'; }
+}
+onMounted(loadPaymentQr);
 
 const vipExpiring = computed(() => {
   if (!props.isVip || !props.vipExpire) return false;
@@ -38,16 +30,8 @@ const vipExpiring = computed(() => {
   return (expire - new Date()) / 86400000 < 7;
 });
 
-async function copyTaobaoCode() {
-  try {
-    await navigator.clipboard.writeText(TAOBAO_CODE);
-    copyMessage.value = '口令已复制，打开淘宝即可跳转';
-  } catch {
-    copyMessage.value = '复制失败，请长按口令手动复制';
-  }
-}
-
 async function doRedeem() {
+  if (redeeming.value) return;
   const code = codeInput.value.trim();
   if (!code) { redeemMsg.value = '请输入兑换码'; return; }
   redeeming.value = true;
@@ -95,14 +79,14 @@ async function saveNickname() {
 
 <template>
   <div class="vip-mask">
-    <div class="vip-modal">
+    <div class="vip-modal" role="dialog" aria-modal="true" aria-label="账号与会员">
       <!-- 标题区 -->
       <div class="vip-header">
         <div class="vip-header-left">
-          <div class="vip-brand">求职助手</div>
+          <div class="vip-brand">小麦说职位</div>
           <div class="vip-title">账号与会员</div>
         </div>
-        <div class="vip-close" @click="emit('close')">✕</div>
+        <button class="vip-close" aria-label="关闭账号与会员" @click="emit('close')">✕</button>
       </div>
 
       <!-- 账号状态卡片 -->
@@ -125,48 +109,25 @@ async function saveNickname() {
       </div>
       <div class="vip-main">
 
-      <section class="membership-panel" aria-label="会员定价与功能对比">
-        <div class="membership-head">
-          <h3>会员定价</h3>
-          <span>兑换后立即生效</span>
+      <section class="payment-qr-panel" aria-label="会员支付二维码">
+        <div class="payment-qr-frame">
+          <img v-if="qrState === 'ready'" :src="paymentQr" alt="会员支付二维码" @error="qrState = 'error'" />
+          <span v-else class="payment-qr-placeholder">{{ qrState === 'loading' ? '正在加载二维码' : qrState === 'empty' ? '支付二维码待上传' : '二维码加载失败' }}</span>
         </div>
-        <div class="membership-prices">
-          <article v-for="item in prices" :key="item.key" :class="tierClass[item.key]">
-            <strong>{{ item.name }}</strong>
-            <del v-if="item.original && item.original !== item.sale">¥{{ item.original }}</del>
-            <b>¥{{ item.sale }}</b>
-            <small>限时 · {{ item.days }} 天</small>
-          </article>
-        </div>
-        <div class="benefit-box">
-          <h3>会员权益介绍</h3>
-          <ol>
-            <li>岗位每日更新（全网最全）</li>
-            <li>手机、电脑、客户端多端互通共用</li>
-            <li>支持关注岗位与进度管理</li>
-            <li><em>赠送：</em>快速填写网申插件（别再手填了）</li>
-          </ol>
-        </div>
+        <p class="payment-qr-caption">微信扫码获取兑换码</p>
+        <button v-if="qrState === 'error'" class="qr-retry" @click="loadPaymentQr">重新加载</button>
       </section>
 
       <!-- 兑换码 -->
       <div class="code-box">
         <div class="code-title">会员兑换</div>
         <div class="code-row">
-          <input v-model="codeInput" class="promo-input" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
+          <input v-model="codeInput" class="promo-input" aria-label="会员兑换码" placeholder="请输入会员兑换码" @keyup.enter="doRedeem" />
           <button class="code-btn" :disabled="redeeming" @click="doRedeem">{{ redeeming ? '兑换中' : '立即兑换' }}</button>
         </div>
         <div v-if="redeemMsg" class="redeem-msg" :class="{ error: redeemMsg.includes('失败') || redeemMsg.includes('不存在') || redeemMsg.includes('已使用') || redeemMsg.includes('过期') }">{{ redeemMsg }}</div>
-        <button class="get-code-btn" @click="showShop = true; copyMessage = ''">获取兑换码</button>
       </div>
       </div>
-      </div>
-      <div v-if="showShop" class="shop-mask" @click.self="showShop = false">
-        <section class="shop-dialog">
-          <header><h3>官方淘宝店获取</h3><button @click="showShop = false">关闭</button></header>
-          <div class="shop-method"><strong>获取方式 1</strong><p>淘宝 APP 扫描店铺二维码</p><img :src="taobaoShopQr" alt="官方淘宝店铺二维码" /></div>
-          <div class="shop-method"><strong>获取方式 2</strong><p>复制口令，打开淘宝自动跳转</p><code>{{ TAOBAO_CODE }}</code><button class="copy-btn" @click="copyTaobaoCode">复制口令</button><small>{{ copyMessage }}</small></div>
-        </section>
       </div>
     </div>
   </div>
@@ -186,7 +147,7 @@ async function saveNickname() {
 }
 
 .vip-modal {
-  width: min(980px, calc(100vw - 48px));
+  width: min(760px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   overflow: auto;
   background: #ffffff;
@@ -216,6 +177,7 @@ async function saveNickname() {
   color: #18385f;
 }
 .vip-close {
+  border: 0;
   width: 46px;
   height: 46px;
   border-radius: 50%;
@@ -265,7 +227,7 @@ async function saveNickname() {
 .nickname-cancel { height: 32px; padding: 0 12px; border: 1px solid #d4e6f8; border-radius: 8px; background: #fff; color: #647b96; font-size: 13px; cursor: pointer; }
 .acct-type { font-size: 13px; color: #647b96; margin-top: 4px; }
 .acct-type.expiring { color: #e35d5d; font-weight: 700; }
-.vip-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 18px; align-items: start; }
+.vip-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
 .vip-main { min-width: 0; }
 .acct-logout {
   padding: 8px 20px;
@@ -480,4 +442,14 @@ async function saveNickname() {
 .contact-qr-empty { font-size: 12px; color: #94a6ba; }
 
 .vip-tip { font-size: 13px; color: #94a6ba; margin-top: 16px; text-align: center; }
+.payment-qr-panel{display:flex;flex-direction:column;align-items:center;padding:8px 0 22px;margin-bottom:20px;border-bottom:1px solid #e9eff7}
+.payment-qr-frame{width:224px;max-width:100%;aspect-ratio:1;background:#fff;border:1px solid #e2ebf6;border-radius:8px;padding:10px;display:grid;place-items:center;box-sizing:border-box;box-shadow:0 4px 16px #24456b08}
+.payment-qr-frame img{width:100%;height:100%;object-fit:contain;min-height:0}
+.payment-qr-placeholder{font-size:13px;color:#8b9bb0;text-align:center}
+.payment-qr-caption{margin:14px 0 0;font-size:15px;font-weight:600;color:#263d59;white-space:nowrap}
+.qr-retry{margin-top:10px;border:0;background:transparent;color:#3286ee;font-size:12px;cursor:pointer}
+.code-row .promo-input{min-width:0;box-sizing:border-box;border:1px solid #d4e6f8;border-radius:10px;padding:0 12px;font-size:14px;outline:none}
+.code-row .promo-input:focus{border-color:#3286ee;box-shadow:0 0 0 3px #3286ee12}
+.nickname-edit{flex-wrap:wrap;width:100%}.nickname-input{min-width:0}.acct-meta{min-width:0;max-width:100%}.acct-name{overflow-wrap:anywhere}
+@media(max-width:600px){.vip-modal{width:calc(100vw - 24px);padding:20px}.vip-layout{grid-template-columns:minmax(0,1fr);gap:16px}.vip-layout .acct-card{flex-direction:row;flex-wrap:wrap}.payment-qr-panel{padding-top:0}.payment-qr-frame{width:200px}}
 </style>

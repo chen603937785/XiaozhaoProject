@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "小麦填写助手",
+  "version": "0.1.9",
+  "minimum_chrome_version": "111",
+  "description": "同步小麦简历与关注岗位，通过独立悬浮框辅助填写网申，支持控件调试与复核。",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://my88ai.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["network-hook.js", "panel.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["network-hook.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["vendor/ai-helpers.js", "vendor/custom-controls.js", "vendor/control-adapters.js", "vendor/field-scan.js", "controls.js", "wintalent-controls.js", "phoenix-controls.js", "engine.js", "resume-schema.js", "fields.js", "content.js"],
+      "css": ["panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "小麦填写助手",
+    "default_popup": "popup.html",
+    "default_icon": {"32": "icons/32.png", "128": "icons/128.png"}
+  },
+  "icons": {"32": "icons/32.png", "128": "icons/128.png"}
+}
