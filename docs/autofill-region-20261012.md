@@ -13,3 +13,19 @@
 真实信达页面访问需要登录；当前测试浏览器登录后仍跳转或显示加载失败，不能将本地原版控件验收等同于登录后真实账号表单验收。实际表单验证结果将在完成后补充。
 
 Mac 目标保持 universal-apple-darwin，Windows 保持 x86_64-pc-windows-msvc、NSIS。原应用 identifier、WebView 绝对数据目录和 GPU 参数不变。发布脚本采用哈希资源先上传、清单后切换，保留历史脚本便于回滚。
+
+## 发布验收
+
+提交 `a0e11cd` 同步客户端与插件；提交 `7dc6ebe` 补入云端构建依赖的 16 模块 / 173 字段简历 schema。首轮 `v0.1.10` 云端因该 schema 未跟踪而失败；修正后的 `v0.1.10-build.1` 两端构建成功，安装包内部版本均为 0.1.10。GitHub Actions：`https://github.com/chen603937785/XiaozhaoProject/actions/runs/38270920327`。
+
+客户端填写脚本已发布为 1.3.1：`/autofill/releases/1.3.1-86ee5b77605c.js`，SHA-256 `86ee5b77605cfa1b7a7d01eb2bd60ed8f338f50b86e793a0d2294b78fcfb766e`；线上下载与本地相同。旧清单保存在服务器 `/opt/campus-job/autofill-region-release.eKhSEk/manifest.previous.json`。插件压缩包：`https://my88ai.com/downloads/xiaomai-autofill-0.1.9.zip`。
+
+Chrome 当前安装路径仍为桌面 `自动填表插件/小麦填写助手-0.1.8`，文件版本已更新为 0.1.9，全部 23 个文件与源码逐一一致；保留同一扩展路径，不移除登录记录。更新前内容备份到 `自动填表插件/备份/小麦填写助手-0.1.8-更新前-2026-10-12T15-23-04-736Z`。需要用户在扩展管理页重新加载扩展并刷新招聘页面后生效。
+
+桌面导出：
+
+- `导出包/苹果安装包/小麦说职位_0.1.10_universal.dmg`，云端构建已下载，SHA-256 `6cfd57ebfb8605e6185400521c9c4596e36326a48f46c36ac2a9ff7eb7c0de4b`。
+- `导出包/windows安装包/小麦说职位_0.1.10_x64-setup.exe`，SHA-256 `8174a013dee1c76bdfce11b339ff5db43239868dcd2bbddec40c5ec72b495131`。
+- `导出包/小麦填写助手_0.1.9.zip`。
+
+Mac 安装包已校验 DMG、应用版本、x86_64/arm64 双架构及内置脚本完整一致；Windows 校验云端构建成功、ZIP 完整性、PE 安装文件结构，未在 Windows 真机运行。浏览器本地原版控件截图为 `output/playwright/cinda-region-controls.png`。真实信达账号表单因登录跳转仍未完成验收，不应表述为真实页面全字段填写通过。
