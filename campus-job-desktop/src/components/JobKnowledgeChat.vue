@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, nextTick, watch } from 'vue';
-import { getToken, knowledgeStatus, askJobKnowledge, searchJobKnowledge, getPositionFollows, addPositionFollow, removePositionFollow } from '../api';
+import aiMark from '../assets/ai-mark.png';
+import { getUserInfo, getToken, knowledgeStatus, askJobKnowledge, searchJobKnowledge, getPositionFollows, addPositionFollow, removePositionFollow } from '../api';
 const emit = defineEmits(['require-login','follow-changed','open-link']);
 const props=defineProps({active:Boolean});
 watch(()=>props.active,async active=>{if(!active||!getToken())return;try{const ids=new Set((await getPositionFollows()).map(row=>Number(row.positionId)));for(const turn of turns.value)for(const job of turn.jobs||[])job.isFavorite=ids.has(Number(job.positionId));}catch(e){error.value=e.message;}});
@@ -17,8 +18,9 @@ async function refreshStatus(){
 onMounted(refreshStatus);
 async function send(text){
  if(loading.value)return;
- if(!getToken()){emit('require-login');return;}
+ if(!getToken()){error.value='该功能会员用户免费使用';return;}
  const question=String(text || draft.value).trim();if(!question)return;
+ try{const user=await getUserInfo();if(!user?.isVip){error.value='该功能会员用户免费使用';return;}}catch(e){error.value=e.message;return;}
  const history=turns.value.slice(-6).map(t=>({role:t.role,content:t.content}));
  turns.value.push({role:'user',content:question});draft.value='';loading.value=true;error.value='';
  try {
@@ -36,7 +38,7 @@ function clear(){if(!loading.value){turns.value=[];error.value='';}}
 </script>
 <template>
  <section class="kb-chat">
-  <header class="kb-head"><div><span class="kb-eyebrow">公告知识库 · 全库检索</span><h1>AI 找岗位</h1></div><button class="kb-secondary" :disabled="loading" @click="clear">新对话</button></header>
+  <header class="kb-head"><div><span class="kb-eyebrow">公告知识库 · 全库检索</span><h1 class="kb-title"><img :src="aiMark" alt="AI">找岗位</h1></div><button class="kb-secondary" :disabled="loading" @click="clear">新对话</button></header>
   <div v-if="!turns.length" class="kb-welcome"><div class="kb-spark">✦</div><h2>聊一聊，找到你的下一站</h2><p>从专业、城市到岗位方向，把你的想法告诉我。</p><div class="kb-examples"><button v-for="q in examples" :key="q" @click="send(q)">{{q}} <span>↗</span></button></div></div>
   <div ref="messages" class="kb-messages" aria-live="polite">
    <article v-for="(turn,index) in turns" :key="index" :class="['kb-turn','kb-'+turn.role]">
@@ -67,4 +69,5 @@ function clear(){if(!loading.value){turns.value=[];error.value='';}}
 .kb-job-identity{min-width:0;flex:1}.kb-company-line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}.kb-company-line>strong{line-height:1.7}.kb-job-heading{align-items:flex-start}
 /* Match the blue and neutral palette of the workbench. */
 .kb-chat{padding-top:24px}.kb-welcome{padding:10px 0 20px}.kb-eyebrow,.kb-answer-label,.kb-examples span{color:#5d7daa}.kb-spark{color:#5489dc;background:#edf4ff;border:1px solid #dbe7f7;box-shadow:none}.kb-examples button:hover{border-color:#a5c4ee;background:#f8fbff}.kb-user-bubble{background:#edf3fc}.kb-summary{background:transparent;border:0;padding:6px 0;color:#354052}.kb-review-note{font-size:12px;line-height:1.8;color:#cf3e3e;margin:6px 0 0}.kb-result-count{color:#737d8c;font-weight:400}.kb-result-count strong{color:#354052;font-size:18px;margin:0 4px}.kb-job{border:1px solid #e4e9f0;border-radius:12px;padding:20px 22px;box-shadow:0 2px 10px #22334a06}.kb-job h3{font-size:18px;color:#303d50}.kb-deadline{background:#f5f7fa}.kb-deadline>span{color:#8791a0}.kb-deadline strong{color:#546174}.kb-job footer .kb-updated{margin-right:auto;color:#929ba8;font-size:11px}.kb-job footer .kb-apply-button{background:#528bee;border-color:#528bee;color:white!important}.kb-job footer a{color:#55729b}.kb-favorite-button{height:36px;padding:0 14px;border:1px solid #dce3ec;border-radius:7px;background:#fff;color:#52677f;font-size:12px;cursor:pointer}.kb-favorite-button:hover{background:#f1f6ff;border-color:#a9c4ee}.kb-favorite-button.active{background:#edf4ff;border-color:#9dbbe8;color:#4775b7}.kb-favorite-button:disabled{opacity:.55;cursor:default}.kb-composer{border-color:#dce4f0;box-shadow:0 4px 20px #23334d08}.kb-composer button{background:#528bee}.kb-pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin:24px 0;font-size:12px;color:#798391}.kb-pagination button{border:1px solid #dce3ec;border-radius:7px;background:white;padding:8px 14px;color:#52677f;cursor:pointer}.kb-pagination button:disabled{opacity:.4;cursor:default}.kb-pagination button:hover:enabled{background:#f1f6ff;border-color:#a9c4ee}.kb-pagination input{width:54px;height:32px;margin:0 3px;border:1px solid #dce3ec;border-radius:6px;text-align:center;color:#354052}.kb-pagination .kb-page-go{background:#528bee;border-color:#528bee;color:white}.kb-pagination input:disabled{background:#f5f6f8}.kb-thinking-shine{color:#6384b3}.kb-thinking-shine::after{background-image:linear-gradient(90deg,transparent 0%,#c2dcff 50%,transparent 100%)}@media(max-width:800px){.kb-job footer{flex-wrap:wrap}.kb-job footer .kb-updated{flex-basis:100%}.kb-pagination{gap:7px;flex-wrap:wrap}.kb-pagination span{display:flex;align-items:center;gap:2px}}
+.kb-title{display:flex;align-items:center;gap:9px}.kb-title img{width:36px;height:36px;object-fit:contain}
 </style>

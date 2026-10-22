@@ -16,6 +16,7 @@ import FollowJobs from './components/FollowJobs.vue';
 import PlanManage from './components/PlanManage.vue';
 import TodoCalendar from './components/TodoCalendar.vue';
 import ResumeManage from './components/ResumeManage.vue';
+import aiMark from './assets/ai-mark.png';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 
@@ -186,7 +187,7 @@ const filters = reactive({
 const sidebarCollapsed = ref(false);
 function toggleSidebar() { sidebarCollapsed.value = !sidebarCollapsed.value; }
 
-const showRegister = ref(!IS_WEB);
+const showRegister = ref(false);
 const loggedIn = ref(false);
 const userInfo = ref(null);
 
@@ -279,7 +280,7 @@ function logout() {
   plans.value = [];
   Object.keys(matchPref).forEach(k => matchPref[k] = '');
   showVipModal.value = false;
-  showRegister.value = !IS_WEB;
+  showRegister.value = false;
 }
 
 function onAccountClick() {
@@ -827,8 +828,8 @@ onMounted(async () => {
 
         <nav class="menu">
           <div v-for="m in menus" :key="m.label" class="menu-item" :class="{ active: activeTabId === m.label }" :title="m.label" @click="openTab(m.label)">
-            <span class="menu-icon">{{ m.icon }}</span>
-            <span class="menu-label" v-show="!sidebarCollapsed">{{ m.label }}</span>
+            <span class="menu-icon"><img v-if="m.label === 'AI 找岗位'" :src="aiMark" class="menu-ai-icon" alt="AI"><template v-else>{{ m.icon }}</template></span>
+            <span class="menu-label" v-show="!sidebarCollapsed">{{ m.label === 'AI 找岗位' ? '找岗位' : m.label }}</span>
             <span v-if="m.label === '关注岗位' && activePlanFollowCount" class="menu-badge" :class="{ collapsed: sidebarCollapsed }">{{ activePlanFollowCount }}</span>
             <span v-if="m.label === '岗位库' && meta.recentCount" class="menu-badge" :class="{ collapsed: sidebarCollapsed }">+{{ meta.recentCount }}</span>
             <span v-if="m.label === '系统设置' && hasUpdate" class="menu-update-badge" :class="{ collapsed: sidebarCollapsed }">有新版本</span>
@@ -1527,4 +1528,5 @@ tbody tr:hover td { background: #f8fafd; }
 }
 .settings-switch input:checked + .settings-slider { background: var(--primary); }
 .settings-switch input:checked + .settings-slider::before { transform: translateX(20px); }
+.menu-ai-icon{width:22px;height:22px;object-fit:contain;vertical-align:middle}
 </style>
