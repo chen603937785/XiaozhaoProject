@@ -15,8 +15,19 @@ async function request(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getToken();
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  const res = await fetch(BASE_URL + path, { ...options, headers });
-  const json = await res.json();
+  let res;
+  try {
+    res = await fetch(BASE_URL + path, { ...options, headers });
+  } catch (e) {
+    if (e instanceof TypeError) throw new Error('无法连接服务，请检查网络后重试');
+    throw e;
+  }
+  let json;
+  try {
+    json = await res.json();
+  } catch (e) {
+    throw new Error(res.ok ? '服务响应异常，请稍后重试' : `服务暂不可用（HTTP ${res.status}）`);
+  }
   if (json.code !== 200) throw new Error(json.message || '请求失败');
   return json.data;
 }
@@ -108,16 +119,18 @@ export function getJobStatusOverview(planId) {
   return get('/api/job-status/overview' + qs);
 }
 export function followJob(jobId, planId) { return post('/api/job-status/follow', { jobId, planId }); }
-export function unfollowJob(jobId) { return del(`/api/job-status/follow/${jobId}`); }
+export function unfollowJob(jobId) { if(jobId<0)return removePositionFollow(-jobId);return del(`/api/job-status/follow/${jobId}`); }
 export function isFollowed(jobId) { return get(`/api/job-status/followed/${jobId}`); }
-export function getJobStatusList(status, planId) {
+export async function getJobStatusList(status, planId) {
   const params = [];
   if (status) params.push('status=' + encodeURIComponent(status));
   if (planId) params.push('planId=' + encodeURIComponent(planId));
   const qs = params.length ? '?' + params.join('&') : '';
-  return get('/api/job-status/list' + qs);
+  const [aggregate,positions]=await Promise.all([get('/api/job-status/list'+qs),getPositionFollows()]);
+  return [...aggregate,...positions.filter(j=>(!status || j.mainStatus===status) && (!planId || Number(j.planId)===Number(planId)))];
 }
 export function updateJobStatus(jobId, mainStatus, subStatus, reason) {
+  if(jobId<0)return put('/api/knowledge/follows/'+(-jobId)+'/status',{mainStatus,subStatus,reason});
   return put(`/api/job-status/${jobId}/status`, { mainStatus, subStatus, reason });
 }
 export function updateExpectedStart(jobId, expectedStartAt) {
@@ -170,3 +183,13 @@ export function getMembershipPaymentQr() {
     return typeof path === 'string' && /^\/downloads\/[a-zA-Z0-9_.-]+$/.test(path) ? BASE_URL + path : '';
   });
 }
+
+// 公告知识库试点：登录后查询，API Key 始终由后端保管。
+export function knowledgeStatus() { return get('/api/knowledge/status'); }
+export function askJobKnowledge(body) { return post('/api/knowledge/chat', body); }
+
+export function searchJobKnowledge(body) { return post('/api/knowledge/search', body); }
+
+export function getPositionFollows(){return get('/api/knowledge/follows');}
+export function addPositionFollow(positionId){return post('/api/knowledge/follows/'+positionId);}
+export function removePositionFollow(positionId){return del('/api/knowledge/follows/'+positionId);}

@@ -44,7 +44,7 @@ const subMenuStatus = ref('');
 
 const planJobs = computed(() => {
   if (currentPlanId.value == null) return allJobs.value;
-  return allJobs.value.filter(j => j.planId === currentPlanId.value);
+  return allJobs.value.filter(j => Number(j.planId) === Number(currentPlanId.value));
 });
 
 const countByStatus = computed(() => {
@@ -159,6 +159,7 @@ function deadlineLabel(r) {
 }
 
 function gradeLabel(r) {
+  if(r.positionId)return r.graduation || '—';
   if (r.gradeMin == null || r.gradeMax == null) return '—';
   if (r.gradeMin === 0 && r.gradeMax === 99) return '不限';
   if (r.gradeMin === r.gradeMax) return r.gradeMin + '届';
@@ -245,7 +246,7 @@ onMounted(async () => {
         <tbody>
           <tr v-for="r in jobs" :key="r.jobId">
             <td class="c-company fj-company">{{ r.companyName }}</td>
-            <td class="c-post fj-post" :title="r.positions">{{ firstOf(r.positions, 2) }}</td>
+            <td class="c-post fj-post" :title="r.positions"><span>{{ r.positionId ? r.positions : firstOf(r.positions, 2) }}</span><details v-if="r.positionId" class="position-info"><summary>岗位要求</summary><p v-if="r.facts?.education">学历：{{r.facts.education}}</p><p>专业：{{r.facts?.majorRaw || '公告未说明'}}</p><p v-if="r.facts?.responsibilities">职责：{{r.facts.responsibilities}}</p><p v-if="r.facts?.requirements">任职要求：{{r.facts.requirements}}</p><p v-if="r.facts?.benefits">福利：{{r.facts.benefits}}</p></details></td>
             <td class="c-deadline fj-deadline" :title="r.deadline">{{ deadlineLabel(r) }}</td>
             <td class="c-city fj-city" :title="r.cities">{{ firstOf(r.cities, 2) }}</td>
             <td class="c-status">
@@ -253,7 +254,7 @@ onMounted(async () => {
               <div v-if="r.subStatus && r.mainStatus !== 'CLOSED'" class="sub-status">{{ r.subStatus }}</div>
             </td>
             <td class="c-expect">
-              <div class="expect-wrap">
+              <span v-if="r.positionId">—</span><div v-else class="expect-wrap">
                 <DatePicker
                   :model-value="r.expectedStartAt ? String(r.expectedStartAt).slice(0, 10) : ''"
                   date-only
@@ -444,4 +445,5 @@ tbody tr:hover td { background: #f8fafd; }
 .tag-orange { background: var(--orange-bg); color: #f5a623; }
 .tag-cyan { background: #e7f8f7; color: #17a2a6; }
 .tag-gray { background: #eef2f7; color: #8a9bb0; }
+.position-info{font-size:12px;color:var(--text-sub);white-space:normal;line-height:1.7;margin-top:4px}.position-info summary{cursor:pointer;color:var(--primary)}.position-info p{margin:5px 0}.fj-post:has(.position-info){white-space:normal}
 </style>

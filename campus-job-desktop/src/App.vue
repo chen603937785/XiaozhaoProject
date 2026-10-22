@@ -11,6 +11,7 @@ import CityCascader from './components/CityCascader.vue';
 import RegisterModal from './components/RegisterModal.vue';
 import AccountVipModal from './components/AccountVipModal.vue';
 import Workbench from './components/Workbench.vue';
+import JobKnowledgeChat from './components/JobKnowledgeChat.vue';
 import FollowJobs from './components/FollowJobs.vue';
 import PlanManage from './components/PlanManage.vue';
 import TodoCalendar from './components/TodoCalendar.vue';
@@ -26,6 +27,7 @@ const BROWSER_TOP_GAP = 23;
 
 const menus = [
   { icon: '▦', label: '工作台', active: true },
+  { icon: '✦', label: 'AI 找岗位' },
   { icon: '▤', label: '岗位库' },
   { icon: '❤', label: '与我匹配' },
   { icon: '★', label: '关注岗位' },
@@ -426,7 +428,7 @@ async function loadFollowedIds() {
 const activePlanFollowCount = computed(() => {
   const active = plans.value.find(p => p.status === 'IN_PROGRESS');
   if (!active) return followedIds.value.size;
-  return followedList.value.filter(j => j.planId === active.id).length;
+  return followedList.value.filter(j => Number(j.planId) === Number(active.id)).length;
 });
 
 async function toggleFollow(job) {
@@ -878,6 +880,9 @@ onMounted(async () => {
           <div v-show="activeTabId === '工作台'">
             <Workbench :key="workbenchKey" @select-stage="handleSelectStage" @goto-plan="handleGotoPlan" @todo-changed="handleTodoChanged" @require-login="handleRequireLogin" />
           </div>
+          <div v-show="activeTabId === 'AI 找岗位'">
+            <JobKnowledgeChat :active="activeTabId === 'AI 找岗位'" @require-login="handleRequireLogin" @follow-changed="handleStatusChanged" @open-link="openLink" />
+          </div>
           <div v-show="activeTabId === '岗位库'">
           <!-- 欢迎横幅 -->
           <div class="banner">
@@ -1134,7 +1139,7 @@ onMounted(async () => {
           </div>
 
           <!-- 其他页签占位 -->
-          <div v-for="tab in tabs" :key="'ph_' + tab.id" v-show="activeTabId === tab.id && !tab.url && tab.id !== '岗位库' && tab.id !== '工作台' && tab.id !== '与我匹配' && tab.id !== '简历管理' && tab.id !== '岗位跳转' && tab.id !== '关注岗位' && tab.id !== '求职计划' && tab.id !== '待办日历' && tab.id !== '系统设置'" class="placeholder">
+          <div v-for="tab in tabs" :key="'ph_' + tab.id" v-show="activeTabId === tab.id && !tab.url && tab.id !== '岗位库' && tab.id !== '工作台' && tab.id !== '与我匹配' && tab.id !== '简历管理' && tab.id !== '岗位跳转' && tab.id !== '关注岗位' && tab.id !== '求职计划' && tab.id !== '待办日历' && tab.id !== '系统设置' && tab.id !== 'AI 找岗位'" class="placeholder">
             <div class="placeholder-icon">📄</div>
             <div class="placeholder-title">{{ tab.title }}</div>
             <div class="placeholder-desc">功能开发中，敬请期待</div>

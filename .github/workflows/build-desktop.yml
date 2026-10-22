@@ -16,10 +16,12 @@ jobs:
             target: universal-apple-darwin
             rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
             artifact: macos
+            bundles: dmg,app
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             rust_targets: x86_64-pc-windows-msvc
             artifact: windows
+            bundles: nsis
 
     runs-on: ${{ matrix.platform }}
     defaults:
@@ -52,7 +54,7 @@ jobs:
         run: npm install
 
       - name: Build Tauri
-        run: npx tauri build --target ${{ matrix.target }}
+        run: npx tauri build --bundles ${{ matrix.bundles }} --target ${{ matrix.target }}
 
       - name: Upload macOS artifacts
         if: matrix.platform == 'macos-latest'
